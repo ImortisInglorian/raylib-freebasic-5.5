@@ -15,9 +15,10 @@
 *
 *******************************************************************************************'/
 #include "../../raylib.bi"
+#include once "crt.bi"
 
 dim shared as single exponent = 1.0f                 '' Audio exponentiation value
-dim shared as single averageVolume(0 to 399)                  '' Average volume history
+dim shared as single averageVolume(399)                  '' Average volume history
 
 ''------------------------------------------------------------------------------------
 '' Audio processing function
