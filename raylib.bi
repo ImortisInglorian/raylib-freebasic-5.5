@@ -39,8 +39,8 @@
 *       [rcore] rprand (Ramon Snatamaria) for pseudo-random numbers generation
 *       [rtextures] qoi (Dominic Szablewski - https://phoboslab.org) for QOI image manage
 *       [rtextures] stb_image (Sean Barret) for images loading (BMP, TGA, PNG, JPEG, HDR...)
-*       [rtextures] stb_image_write (Sean Barret) for image writing (BMP, TGA, PNG, JPG)
-*       [rtextures] stb_image_resize2 (Sean Barret) for image resizing algorithms
+*       [rtextures] stb_imagewrite (Sean Barret) for image writing (BMP, TGA, PNG, JPG)
+*       [rtextures] stb_imageresize2 (Sean Barret) for image resizing algorithms
 *       [rtextures] stb_perlin (Sean Barret) for Perlin Noise image generation
 *       [rtext] stb_truetype (Sean Barret) for ttf fonts loading
 *       [rtext] stb_rect_pack (Sean Barret) for rectangles packing
@@ -220,17 +220,17 @@ type Rectangle
 	width as single		'' Rectangle width
 	height as single	'' Rectangle height
 	declare constructor()
-	declare constructor(x as single, y as single, width_ as single, height_ as single)
+	declare constructor(x as single, y as single, wid as single, height as single)
 end type
 
 constructor Rectangle()
 end constructor
 
-constructor Rectangle(x as single, y as single, width_ as single, height_ as single)
+constructor Rectangle(x as single, y as single, wid as single, height as single)
 	this.x = x
 	this.y = y
-	this.width = width_
-	this.height = height_
+	this.width = wid
+	this.height = height
 end constructor
 
 '' Image, pixel data stored in CPU memory (RAM)
@@ -282,7 +282,7 @@ type GlyphInfo
 	offsetX as long 	'' Character offset X when drawing
 	offsetY as long 	'' Character offset Y when drawing
 	advanceX as long 	'' Character advance position X
-	image_ as Image 	'' Character image data
+	image as Image 	'' Character image data
 end type
 
 '' Font, font texture and GlyphInfo array data
@@ -384,7 +384,7 @@ end type
 type Material
 	shader as Shader 			'' Material shader
 	maps as MaterialMap ptr 	'' Material maps array (MAX_MATERIAL_MAPS)
-	params(0 to 3) as single 	'' Material generic parameters (if required)
+	params(3) as single 		'' Material generic parameters (if required)
 end type
 
 '' Transform, vertex transformation data
@@ -433,7 +433,7 @@ end type
 
 '' RayCollision, ray hit information
 type RayCollision
-	hit as long 		'' Did the ray hit something?
+	hit as RLBOOL 		'' Did the ray hit something?
 	distance as single 	'' Distance to the nearest hit
 	point as Vector3 	'' Point of the nearest hit
 	normal as Vector3 	'' Surface normal of hit
@@ -490,7 +490,7 @@ end type
 type Music
 	stream as AudioStream 	'' Audio stream
 	frameCount as ulong 	'' Total number of frames (considering channels)
-	looping as long 		'' Music looping enable
+	looping as RLBOOL 		'' Music looping enable
 
 	ctxType as long 		'' Type of music context (audio filetype)
 	ctxData as any ptr 		'' Audio context data, depends on type
@@ -505,20 +505,20 @@ type VrDeviceInfo
 	eyeToScreenDistance as single				'' Distance between eye and display in meters
 	lensSeparationDistance as single			'' Lens separation distance in meters
 	interpupillaryDistance as single			'' IPD (distance between pupils) in meters
-	lensDistortionValues(0 to 3) as single		'' Lens distortion constant parameters
-	chromaAbCorrection(0 to 3) as single		'' Chromatic aberration correction parameters
+	lensDistortionValues(3) as single		'' Lens distortion constant parameters
+	chromaAbCorrection(3) as single		'' Chromatic aberration correction parameters
 end type
 
 '' VrStereoConfig, VR stereo rendering configuration for simulator
 type VrStereoConfig
-	projection(0 to 1) as Matrix		'' VR projection matrices (per eye)
-	viewOffset(0 to 1) as Matrix		'' VR view offset matrices (per eye)
-	leftLensCenter(0 to 1) as single	'' VR left lens center
-	rightLensCenter(0 to 1) as single	'' VR right lens center
-	leftScreenCenter(0 to 1) as single 	'' VR left screen center
-	rightScreenCenter(0 to 1) as single	'' VR right screen center
-	scale(0 to 1) as single				'' VR distortion scale
-	scaleIn(0 to 1) as single			'' VR distortion scale in
+	projection(1) as Matrix		'' VR projection matrices (per eye)
+	viewOffset(1) as Matrix		'' VR view offset matrices (per eye)
+	leftLensCenter(1) as single	'' VR left lens center
+	rightLensCenter(1) as single	'' VR right lens center
+	leftScreenCenter(1) as single 	'' VR left screen center
+	rightScreenCenter(1) as single	'' VR right screen center
+	scale(1) as single				'' VR distortion scale
+	scaleIn(1) as single			'' VR distortion scale in
 end type
 
 '' File path list
@@ -532,7 +532,7 @@ end type
 type AutomationEvent
 	frame as ulong			'' Event frame
 	type as ulong			'' Event type (AutomationEventType)
-	params(0 to 3) as long	'' Event parameters (if required)
+	params(3) as long	'' Event parameters (if required)
 end type
 
 '' Automation event list
@@ -698,7 +698,7 @@ enum
 	KEY_KP_EQUAL = 336		'' Key: Keypad =
 	'' Android key buttons
 	KEY_BACK = 4			'' Key: Android back button
-	KEY_MENU = 82			'' Key: Android menu button
+	KEY_MENU = 5			'' Key: Android menu button
 	KEY_VOLUME_UP = 24		'' Key: Android volume up
 	KEY_VOLUME_DOWN = 25	'' Key: Android volume down
 end enum
@@ -787,8 +787,8 @@ enum
 	MATERIAL_MAP_BRDF		'' Brdf material
 end enum
 
-const MATERIAL_MAP_DIFFUSE = MATERIAL_MAP_ALBEDO
-const MATERIAL_MAP_SPECULAR = MATERIAL_MAP_METALNESS
+#define MATERIAL_MAP_DIFFUSE  MATERIAL_MAP_ALBEDO
+#define MATERIAL_MAP_SPECULAR MATERIAL_MAP_METALNESS
 
 '' Shader location index
 type ShaderLocationIndex as long
@@ -824,8 +824,8 @@ enum
     SHADER_LOC_BONE_MATRICES		'' Shader location: array of matrices uniform: boneMatrices
 end enum
 
-const SHADER_LOC_MAP_DIFFUSE = SHADER_LOC_MAP_ALBEDO
-const SHADER_LOC_MAP_SPECULAR = SHADER_LOC_MAP_METALNESS
+#define SHADER_LOC_MAP_DIFFUSE  SHADER_LOC_MAP_ALBEDO
+#define SHADER_LOC_MAP_SPECULAR SHADER_LOC_MAP_METALNESS
 
 '' Shader uniform data type
 type ShaderUniformDataType as long
@@ -991,8 +991,8 @@ type SaveFileTextCallback as function(byval fileName as const zstring ptr, byval
 ''------------------------------------------------------------------------------------
 '' Window and Graphics Device Functions (Module: core)
 ''------------------------------------------------------------------------------------
-
-declare sub InitWindow(byval width_ as long, byval height_ as long, byval title as const zstring ptr) 	'' Initialize window and OpenGL context
+'' Window-related functions
+declare sub InitWindow(byval width as long, byval height_ as long, byval title as const zstring ptr) 	'' Initialize window and OpenGL context
 declare sub CloseWindow() 																				'' Close window and unload OpenGL context 
 declare function WindowShouldClose() as boolean															'' Check if application should close (KEY_ESCAPE pressed or windows close icon clicked)
 declare function IsWindowReady() as boolean 																'' Check if window has been initialized successfully
@@ -1010,14 +1010,14 @@ declare sub ToggleBorderlessWindow()																	'' Toggle window state: bor
 declare sub MaximizeWindow()																			'' Set window state: maximized, if resizable
 declare sub MinimizeWindow()																			'' Set window state: minimized, if resizable
 declare sub RestoreWindow()																				'' Set window state: not minimized/maximized
-declare sub SetWindowIcon(byval image_ as Image)														'' Set icon for window (single image, RGBA 32bit)
+declare sub SetWindowIcon(byval image as Image)														'' Set icon for window (single image, RGBA 32bit)
 declare sub SetWindowIcons(byval images as Image ptr, byval count as long)								'' Set icon for window (multiple images, RGBA 32bit)
 declare sub SetWindowTitle(byval title as const zstring ptr)											'' Set title for window
 declare sub SetWindowPosition(byval x as long, byval y as long)											'' Set window position on screen
 declare sub SetWindowMonitor(byval monitor as long)														'' Set monitor for the current window
-declare sub SetWindowMinSize(byval width_ as long, byval height_ as long)								'' Set window minimum dimensions (for FLAG_WINDOW_RESIZABLE)
-declare sub SetWindowMaxSize(byval width_ as long, byval height_ as long)								'' Set window maximum dimensions (for FLAG_WINDOW_RESIZABLE)
-declare sub SetWindowSize(byval width_ as long, byval height_ as long)									'' Set window dimensions
+declare sub SetWindowMinSize(byval width as long, byval height as long)								'' Set window minimum dimensions (for FLAG_WINDOW_RESIZABLE)
+declare sub SetWindowMaxSize(byval width as long, byval height as long)								'' Set window maximum dimensions (for FLAG_WINDOW_RESIZABLE)
+declare sub SetWindowSize(byval width as long, byval height as long)									'' Set window dimensions
 declare sub SetWindowOpacity(byval opacity as single)													'' Set window opacity [0.0f..1.0f]
 declare sub SetWindowFocused()																			'' Set window focused
 declare function GetWindowHandle() as any ptr															'' Get native window handle
@@ -1064,7 +1064,7 @@ declare sub BeginShaderMode(byval shader as Shader)															'' Begin custo
 declare sub EndShaderMode()																					'' End custom shader drawing (use default shader)
 declare sub BeginBlendMode(byval mode as long)																'' Begin blending mode (alpha, additive, multiplied, subtract, custom)
 declare sub EndBlendMode()																					'' End blending mode (reset to default: alpha blending)
-declare sub BeginScissorMode(byval x as long, byval y as long, byval width_ as long, byval height_ as long)	'' Begin scissor mode (define screen area for following drawing)
+declare sub BeginScissorMode(byval x as long, byval y as long, byval width as long, byval height as long)	'' Begin scissor mode (define screen area for following drawing)
 declare sub EndScissorMode()																				'' End scissor mode
 declare sub BeginVrStereoMode(byval config as VrStereoConfig)												'' Begin stereo rendering (requires VR simulator)
 declare sub EndVrStereoMode()																				'' End stereo rendering (requires VR simulator)
@@ -1077,7 +1077,7 @@ declare sub UnloadVrStereoConfig(byval config as VrStereoConfig)					'' Unload V
 '' NOTE: Shader functionality is not available on OpenGL 1.1
 declare function LoadShader(byval vsFileName as const zstring ptr, byval fsFileName as const zstring ptr) as Shader											'' Load shader from files and bind default locations
 declare function LoadShaderFromMemory(byval vsCode as const zstring ptr, byval fsCode as const zstring ptr) as Shader										'' Load shader from code strings and bind default locations
-declare function IsShaderReady(byval shader as Shader) as byte																								'' Check if a shader is valid (loaded on GPU)
+declare function IsShaderValid(byval shader as Shader) as boolean																							'' Check if a shader is valid (loaded on GPU)
 declare function GetShaderLocation(byval shader as Shader, byval uniformName as const zstring ptr) as long													'' Get shader uniform location
 declare function GetShaderLocationAttrib(byval shader as Shader, byval attribName as const zstring ptr) as long												'' Get shader attribute location
 declare sub SetShaderValue(byval shader as Shader, byval locIndex as long, byval value as const any ptr, byval uniformType as long)							'' Set shader uniform value
@@ -1088,10 +1088,10 @@ declare sub UnloadShader(byval shader as Shader)																											'' Un
 
 '' Screen-space-related functions
 #define GetMouseRay GetScreenToWorldRay     																									'' Compatibility hack for previous raylib versions
-declare function GetScreenToWorldRay(byval position as Vector2, byval camera_ as Camera) as Ray													'' Get a ray trace from screen position (i.e mouse)
-declare function GetScreenToWorldRayEx(byval position as Vector2, byval camera_ as Camera, byval width as long, byval height as long) as Ray 	'' Get a ray trace from screen position (i.e mouse) in a viewport
+declare function GetScreenToWorldRay(byval position as Vector2, byval camera as Camera) as Ray													'' Get a ray trace from screen position (i.e mouse)
+declare function GetScreenToWorldRayEx(byval position as Vector2, byval camera as Camera, byval width as long, byval height as long) as Ray 	'' Get a ray trace from screen position (i.e mouse) in a viewport
 declare function GetWorldToScreen(byval position as Vector3, byval camera as Camera) as Vector2													'' Get the screen space position for a 3d world space position
-declare function GetWorldToScreenEx(byval position as Vector3, byval camera as Camera, byval width_ as long, byval height_ as long) as Vector2	'' Get size position for a 3d world space position
+declare function GetWorldToScreenEx(byval position as Vector3, byval camera as Camera, byval width as long, byval height_ as long) as Vector2	'' Get size position for a 3d world space position
 declare function GetScreenToWorld2D(byval position as Vector2, byval camera as Camera2D) as Vector2												'' Get the screen space position for a 2d camera world space position
 declare function GetWorldToScreen2D(byval position as Vector2, byval camera as Camera2D) as Vector2												'' Get the world space position for a 2d camera screen space position
 declare function GetCameraMatrix(byval camera as Camera) as Matrix																				'' Get camera transform matrix (view matrix)
@@ -1140,16 +1140,16 @@ declare sub SetSaveFileTextCallback(byval callback as SaveFileTextCallback)	'' S
 
 '' Files management functions
 declare function LoadFileData(byval fileName as const zstring ptr, byval dataSize as long ptr) as ubyte ptr									'' Load file data as byte array (read)
-declare sub UnloadFileData(byval data_ as ubyte ptr)																						'' Unload file data allocated by LoadFileData()
-declare function SaveFileData(byval fileName as const zstring ptr, byval data_ as any ptr, byval dataSize as long) as boolean				'' Save data to file from byte array (write), returns true on success
-declare function ExportDataAsCode(byval data_ as const zstring ptr, byval dataSize as long, byval fileName as const zstring ptr) as boolean	'' Export data to code (.h), returns true on success
+declare sub UnloadFileData(byval data as ubyte ptr)																						'' Unload file data allocated by LoadFileData()
+declare function SaveFileData(byval fileName as const zstring ptr, byval data as any ptr, byval dataSize as long) as boolean				'' Save data to file from byte array (write), returns true on success
+declare function ExportDataAsCode(byval data as const zstring ptr, byval dataSize as long, byval fileName as const zstring ptr) as boolean	'' Export data to code (.h), returns true on success
 declare function LoadFileText(byval fileName as const zstring ptr) as zstring ptr															'' Load text data from file (read), returns a '\0' terminated string
 declare sub UnloadFileText(byval text as zstring ptr)																						'' Unload file text data allocated by LoadFileText()
 declare function SaveFileText(byval fileName as const zstring ptr, byval text as zstring ptr) as boolean										'' Save text data to file (write), string must be '\0' terminated, returns true on success
 ''------------------------------------------------------------------
 
 '' File system functions
-declare function fileexists(byval fileName as const zstring ptr) as boolean																					'' Check if file exists
+declare function FileExists(byval fileName as const zstring ptr) as boolean																					'' Check if file exists
 declare function DirectoryExists(byval dirPath as const zstring ptr) as boolean																				'' Check if a directory path exists
 declare function IsFileExtension(byval fileName as const zstring ptr, byval ext as const zstring ptr) as boolean												'' Check file extension (including point: .png, .wav)
 declare function GetFileLength(byval fileName as const zstring ptr) as long																					'' Get file length in bytes (NOTE: GetFileSize() conflicts with windows.h)
@@ -1288,14 +1288,14 @@ declare sub DrawEllipse(byval centerX as long, byval centerY as long, byval radi
 declare sub DrawEllipseLines(byval centerX as long, byval centerY as long, byval radiusH as single, byval radiusV as single, byval color as RLColor)	'' Draw ellipse outline
 declare sub DrawRing(byval center as Vector2, byval innerRadius as single, byval outerRadius as single, byval startAngle as single, byval endAngle as single, byval segments as long, byval color as RLColor)		'' Draw ring
 declare sub DrawRingLines(byval center as Vector2, byval innerRadius as single, byval outerRadius as single, byval startAngle as single, byval endAngle as single, byval segments as long, byval color as RLColor)	'' Draw ring outline
-declare sub DrawRectangle(byval posX as long, byval posY as long, byval width_ as long, byval height_ as long, byval color as RLColor)	'' Draw a color-filled rectangle
+declare sub DrawRectangle(byval posX as long, byval posY as long, byval width as long, byval height_ as long, byval color as RLColor)	'' Draw a color-filled rectangle
 declare sub DrawRectangleV(byval position as Vector2, byval size as Vector2, byval color as RLColor)									'' Draw a color-filled rectangle (Vector version)
 declare sub DrawRectangleRec(byval rec as Rectangle, byval color as RLColor)															'' Draw a color-filled rectangle
 declare sub DrawRectanglePro(byval rec as Rectangle, byval origin as Vector2, byval rotation as single, byval color as RLColor)			'' Draw a color-filled rectangle with pro parameters
-declare sub DrawRectangleGradientV(byval posX as long, byval posY as long, byval width_ as long, byval height_ as long, byval color1 as RLColor, byval color2 as RLColor)	'' Draw a vertical-gradient-filled rectangle
-declare sub DrawRectangleGradientH(byval posX as long, byval posY as long, byval width_ as long, byval height_ as long, byval color1 as RLColor, byval color2 as RLColor)	'' Draw a horizontal-gradient-filled rectangle
+declare sub DrawRectangleGradientV(byval posX as long, byval posY as long, byval width as long, byval height_ as long, byval color1 as RLColor, byval color2 as RLColor)	'' Draw a vertical-gradient-filled rectangle
+declare sub DrawRectangleGradientH(byval posX as long, byval posY as long, byval width as long, byval height_ as long, byval color1 as RLColor, byval color2 as RLColor)	'' Draw a horizontal-gradient-filled rectangle
 declare sub DrawRectangleGradientEx(byval rec as Rectangle, byval col1 as RLColor, byval col2 as RLColor, byval col3 as RLColor, byval col4 as RLColor)						'' Draw a gradient-filled rectangle with custom vertex colors
-declare sub DrawRectangleLines(byval posX as long, byval posY as long, byval width_ as long, byval height_ as long, byval color as RLColor)	'' Draw rectangle outline
+declare sub DrawRectangleLines(byval posX as long, byval posY as long, byval width as long, byval height_ as long, byval color as RLColor)	'' Draw rectangle outline
 declare sub DrawRectangleLinesEx(byval rec as Rectangle, byval lineThick as single, byval color as RLColor)									'' Draw rectangle outline with extended parameters
 declare sub DrawRectangleRounded(byval rec as Rectangle, byval roundness as single, byval segments as long, byval color as RLColor)										'' Draw rectangle with rounded edges
 declare sub DrawRectangleRoundedLines(byval rec as Rectangle, byval roundness as single, byval segments as long, byval lineThick as single, byval color as RLColor)		'' Draw rectangle lines with rounded edges
@@ -1332,11 +1332,11 @@ declare function CheckCollisionRecs(byval rec1 as Rectangle, byval rec2 as Recta
 declare function CheckCollisionCircles(byval center1 as Vector2, byval radius1 as single, byval center2 as Vector2, byval radius2 as single) as boolean											'' Check collision between two circles
 declare function CheckCollisionCircleRec(byval center as Vector2, byval radius as single, byval rec as Rectangle) as boolean																		'' Check collision between circle and rectangle
 declare function CheckCollisionCircleLine(byval center as Vector2, byval radius as single, byval p1 as Vector2, byval p2 as Vector2) as boolean													'' Check if circle collides with a line created betweeen two points [p1] and [p2]
-declare function CheckCollisionPointRec(byval point_ as Vector2, byval rec as Rectangle) as boolean																								'' Check if point is inside rectangle
-declare function CheckCollisionPointCircle(byval point_ as Vector2, byval center as Vector2, byval radius as single) as boolean																	'' Check if point is inside circle
-declare function CheckCollisionPointTriangle(byval point_ as Vector2, byval p1 as Vector2, byval p2 as Vector2, byval p3 as Vector2) as boolean													'' Check if point is inside a triangle
-declare function CheckCollisionPointLine(byval point_ as Vector2, byval p1 as Vector2, byval p2 as Vector2, byval threshold as long) as boolean													'' Check if point belongs to line created between two points [p1] and [p2] with defined margin in pixels [threshold]
-declare function CheckCollisionPointPoly(byval point as Vector2, byval points as Vector2 ptr, byval pointCount as long) as byte																	'' Check if point is within a polygon described by array of vertices
+declare function CheckCollisionPointRec(byval point as Vector2, byval rec as Rectangle) as boolean																								'' Check if point is inside rectangle
+declare function CheckCollisionPointCircle(byval point as Vector2, byval center as Vector2, byval radius as single) as boolean																	'' Check if point is inside circle
+declare function CheckCollisionPointTriangle(byval point as Vector2, byval p1 as Vector2, byval p2 as Vector2, byval p3 as Vector2) as boolean													'' Check if point is inside a triangle
+declare function CheckCollisionPointLine(byval point as Vector2, byval p1 as Vector2, byval p2 as Vector2, byval threshold as long) as boolean													'' Check if point belongs to line created between two points [p1] and [p2] with defined margin in pixels [threshold]
+declare function CheckCollisionPointPoly(byval point as Vector2, byval points as Vector2 ptr, byval pointCount as long) as boolean																'' Check if point is within a polygon described by array of vertices
 declare function CheckCollisionLines(byval startPos1 as Vector2, byval endPos1 as Vector2, byval startPos2 as Vector2, byval endPos2 as Vector2, byval collisionPoint as Vector2 ptr) as boolean	'' Check the collision between two lines defined by two points each, returns collision point by reference
 declare function GetCollisionRec(byval rec1 as Rectangle, byval rec2 as Rectangle) as Rectangle																									'' Get collision rectangle for two rectangles collision
 
@@ -1347,66 +1347,66 @@ declare function GetCollisionRec(byval rec1 as Rectangle, byval rec2 as Rectangl
 '' Image loading functions
 '' NOTE: These functions do not require GPU access
 declare function LoadImage(byval fileName as const zstring ptr) as Image																									'' Load image from file into CPU memory (RAM)
-declare function LoadImageRaw(byval fileName as const zstring ptr, byval width_ as long, byval height_ as long, byval format_ as long, byval headerSize as long) as Image	'' Load image from RAW file data
+declare function LoadImageRaw(byval fileName as const zstring ptr, byval width as long, byval height_ as long, byval format_ as long, byval headerSize as long) as Image	'' Load image from RAW file data
 declare function LoadImageAnim(byval fileName as const zstring ptr, byval frames as long ptr) as Image																		'' Load image sequence from file (frames appended to image.data)
 declare function LoadImageAnimFromMemory(byval fileType as const zstring ptr, byval fileData as const ubyte ptr, byval dataSize as long, byval frames as long ptr) as Image	'' Load image sequence from memory buffer
 declare function LoadImageFromMemory(byval fileType as const zstring ptr, byval fileData as const ubyte ptr, byval dataSize as long) as Image								'' Load image from memory buffer, fileType refers to extension: i.e. '.png'
 declare function LoadImageFromTexture(byval texture as Texture2D) as Image																									'' Load image from GPU texture data
 declare function LoadImageFromScreen() as Image																																'' Load image from screen buffer and (screenshot)
-declare function IsImageValid(byval image_ as Image) as byte																			'' Check if an image is valid (data and parameters)
-declare sub UnloadImage(byval image_ as Image)																							'' Unload image from CPU memory (RAM)
-declare function ExportImage(byval image_ as Image, byval fileName as const zstring ptr) as boolean										'' Export image data to file, returns true on success
-declare function ExportImageToMemory(byval image_ as Image, byval fileType as const zstring ptr, byval fileSie as long) as zstring ptr	'' Export image to memory buffer
-declare function ExportImageAsCode(byval image_ as Image, byval fileName as const zstring ptr) as boolean								'' Export image as code file defining an array of bytes, returns true on success
+declare function IsImageValid(byval image as Image) as boolean																			'' Check if an image is valid (data and parameters)
+declare sub UnloadImage(byval image as Image)																							'' Unload image from CPU memory (RAM)
+declare function ExportImage(byval image as Image, byval fileName as const zstring ptr) as boolean										'' Export image data to file, returns true on success
+declare function ExportImageToMemory(byval image as Image, byval fileType as const zstring ptr, byval fileSie as long) as zstring ptr	'' Export image to memory buffer
+declare function ExportImageAsCode(byval image as Image, byval fileName as const zstring ptr) as boolean								'' Export image as code file defining an array of bytes, returns true on success
 
 '' Image generation functions
-declare function GenImageColor(byval width_ as long, byval height_ as long, byval color as RLColor) as Image																		'' Generate image: plain color
-declare function GenImageGradientLinear(byval width_ as long, byval height_ as long, byval direction as long, byval start_ as RLColor, byval end_ as RLColor) as Image				'' Generate image: linear gradient, direction in degrees [0..360], 0=Vertical gradient
-declare function GenImageGradientRadial(byval width_ as long, byval height_ as long, byval density as single, byval inner as RLColor, byval outer as RLColor) as Image				'' Generate image: radial gradient
-declare function GenImageGradientSquare(byval width_ as long, byval height_ as long, byval density as single, byval inner as RLColor, byval outer as RLColor) as Image				'' Generate image: square gradient
-declare function GenImageChecked(byval width_ as long, byval height_ as long, byval checksX as long, byval checksY as long, byval col1 as RLColor, byval col2 as RLColor) as Image	'' Generate image: checked
-declare function GenImageWhiteNoise(byval width_ as long, byval height_ as long, byval factor as single) as Image																	'' Generate image: white noise
-declare function GenImagePerlinNoise(byval width_ as long, byval height_ as long, byval offsetX as long, byval offsetY as long, byval scale as single) as Image						'' Generate image: perlin noise
-declare function GenImageCellular(byval width_ as long, byval height_ as long, byval tileSize as long) as Image																		'' Generate image: cellular algorithm, bigger tileSize means bigger cells
-declare function GenImageText(byval width_ as long, byval height_ as long, byval text_ as const zstring ptr) as Image																'' Generate image: grayscale image from text data
+declare function GenImageColor(byval width as long, byval height_ as long, byval color as RLColor) as Image																		'' Generate image: plain color
+declare function GenImageGradientLinear(byval width as long, byval height_ as long, byval direction as long, byval start_ as RLColor, byval end_ as RLColor) as Image				'' Generate image: linear gradient, direction in degrees [0..360], 0=Vertical gradient
+declare function GenImageGradientRadial(byval width as long, byval height_ as long, byval density as single, byval inner as RLColor, byval outer as RLColor) as Image				'' Generate image: radial gradient
+declare function GenImageGradientSquare(byval width as long, byval height_ as long, byval density as single, byval inner as RLColor, byval outer as RLColor) as Image				'' Generate image: square gradient
+declare function GenImageChecked(byval width as long, byval height_ as long, byval checksX as long, byval checksY as long, byval col1 as RLColor, byval col2 as RLColor) as Image	'' Generate image: checked
+declare function GenImageWhiteNoise(byval width as long, byval height_ as long, byval factor as single) as Image																	'' Generate image: white noise
+declare function GenImagePerlinNoise(byval width as long, byval height_ as long, byval offsetX as long, byval offsetY as long, byval scale as single) as Image						'' Generate image: perlin noise
+declare function GenImageCellular(byval width as long, byval height_ as long, byval tileSize as long) as Image																		'' Generate image: cellular algorithm, bigger tileSize means bigger cells
+declare function GenImageText(byval width as long, byval height_ as long, byval text_ as const zstring ptr) as Image																'' Generate image: grayscale image from text data
 
 'Image manipulation functions
-declare function ImageCopy(byval image_ as Image) as Image																														'' Create an image duplicate (useful for transformations)
-declare function ImageFromImage(byval image_ as Image, byval rec as Rectangle) as Image																							'' Create an image from another image piece
-declare function ImageFromChannel(byval image_ as Image, byval selectedChannel as long) as Image																				'' Create an image from a selected channel of another image (GRAYSCALE)
+declare function ImageCopy(byval image as Image) as Image																														'' Create an image duplicate (useful for transformations)
+declare function ImageFromImage(byval image as Image, byval rec as Rectangle) as Image																							'' Create an image from another image piece
+declare function ImageFromChannel(byval image as Image, byval selectedChannel as long) as Image																				'' Create an image from a selected channel of another image (GRAYSCALE)
 declare function ImageText(byval text as const zstring ptr, byval fontSize as long, byval color as RLColor) as Image															'' Create an image from text (default font)
 declare function ImageTextEx(byval font as Font, byval text as const zstring ptr, byval fontSize as single, byval spacing as single, byval tint as RLColor) as Image			'' Create an image from text (custom sprite font)
-declare sub ImageFormat(byval image_ as Image ptr, byval newFormat as long)																										'' Convert image data to desired format
-declare sub ImageToPOT(byval image_ as Image ptr, byval fill as RLColor)																										'' Convert image to POT (power-of-two)
-declare sub ImageCrop(byval image_ as Image ptr, byval crop as Rectangle)																										'' Crop an image to a defined rectangle
-declare sub ImageAlphaCrop(byval image_ as Image ptr, byval threshold as single)																								'' Crop image depending on alpha value
-declare sub ImageAlphaClear(byval image_ as Image ptr, byval color as RLColor, byval threshold as single)																		'' Clear alpha channel to desired color
-declare sub ImageAlphaMask(byval image_ as Image ptr, byval alphaMask as Image)																									'' Apply alpha mask to image
-declare sub ImageAlphaPremultiply(byval image_ as Image ptr)																													'' Premultiply alpha channel
-declare sub ImageBlurGaussian(byval image_ as Image ptr, byval blurSize as long)																								'' Apply Gaussian blur using a box blur approximation
-declare sub ImageKernelConvolution(byval image_ as Image ptr, byval kernel as const single ptr, byval kernelSize as long) 														'' Apply custom square convolution kernel to image
-declare sub ImageResize(byval image_ as Image ptr, byval newWidth as long, byval newHeight as long)																				'' Resize image (Bicubic scaling algorithm)
-declare sub ImageResizeNN(byval image_ as Image ptr, byval newWidth as long, byval newHeight as long)																			'' Resize image (Nearest-Neighbor scaling algorithm)
-declare sub ImageResizeCanvas(byval image_ as Image ptr, byval newWidth as long, byval newHeight as long, byval offsetX as long, byval offsetY as long, byval fill as RLColor)	'' Resize canvas and fill with color
-declare sub ImageMipmaps(byval image_ as Image ptr)																																'' Compute all mipmap levels for a provided image
-declare sub ImageDither(byval image_ as Image ptr, byval rBpp as long, byval gBpp as long, byval bBpp as long, byval aBpp as long)												'' Dither image data to 16bpp or lower (Floyd-Steinberg dithering)
-declare sub ImageFlipVertical(byval image_ as Image ptr)																														'' Flip image vertically
-declare sub ImageFlipHorizontal(byval image_ as Image ptr)																														'' Flip image horizontally
-declare sub ImageRotate(byval image_ as Image ptr, byval degrees as long)																										'' Rotate image by input angle in degrees (-359 to 359)
-declare sub ImageRotateCW(byval image_ as Image ptr)																															'' Rotate image clockwise 90deg
-declare sub ImageRotateCCW(byval image_ as Image ptr)																															'' Rotate image counter-clockwise 90deg
-declare sub ImageColorTint(byval image_ as Image ptr, byval color as RLColor)																									'' Modify image color: tint
-declare sub ImageColorInvert(byval image_ as Image ptr)																															'' Modify image color: invert
-declare sub ImageColorGrayscale(byval image_ as Image ptr)																														'' Modify image color: grayscale
-declare sub ImageColorContrast(byval image_ as Image ptr, byval contrast as single)																								'' Modify image color: contrast (-100 to 100)
-declare sub ImageColorBrightness(byval image_ as Image ptr, byval brightness as long)																							'' Modify image color: brightness (-255 to 255)
-declare sub ImageColorReplace(byval image_ as Image ptr, byval color as RLColor, byval replace as RLColor)																		'' Modify image color: replace color
-declare function LoadImageColors(byval image_ as Image) as RLColor ptr																											'' Load color data from image as a Color array (RGBA - 32bit)
-declare function LoadImagePalette(byval image_ as Image, byval maxPaletteSize as long, byval colorCount as long ptr) as RLColor ptr												'' Load colors palette from image as a Color array (RGBA - 32bit)
+declare sub ImageFormat(byval image as Image ptr, byval newFormat as long)																										'' Convert image data to desired format
+declare sub ImageToPOT(byval image as Image ptr, byval fill as RLColor)																										'' Convert image to POT (power-of-two)
+declare sub ImageCrop(byval image as Image ptr, byval crop as Rectangle)																										'' Crop an image to a defined rectangle
+declare sub ImageAlphaCrop(byval image as Image ptr, byval threshold as single)																								'' Crop image depending on alpha value
+declare sub ImageAlphaClear(byval image as Image ptr, byval color as RLColor, byval threshold as single)																		'' Clear alpha channel to desired color
+declare sub ImageAlphaMask(byval image as Image ptr, byval alphaMask as Image)																									'' Apply alpha mask to image
+declare sub ImageAlphaPremultiply(byval image as Image ptr)																													'' Premultiply alpha channel
+declare sub ImageBlurGaussian(byval image as Image ptr, byval blurSize as long)																								'' Apply Gaussian blur using a box blur approximation
+declare sub ImageKernelConvolution(byval image as Image ptr, byval kernel as const single ptr, byval kernelSize as long) 														'' Apply custom square convolution kernel to image
+declare sub ImageResize(byval image as Image ptr, byval newWidth as long, byval newHeight as long)																				'' Resize image (Bicubic scaling algorithm)
+declare sub ImageResizeNN(byval image as Image ptr, byval newWidth as long, byval newHeight as long)																			'' Resize image (Nearest-Neighbor scaling algorithm)
+declare sub ImageResizeCanvas(byval image as Image ptr, byval newWidth as long, byval newHeight as long, byval offsetX as long, byval offsetY as long, byval fill as RLColor)	'' Resize canvas and fill with color
+declare sub ImageMipmaps(byval image as Image ptr)																																'' Compute all mipmap levels for a provided image
+declare sub ImageDither(byval image as Image ptr, byval rBpp as long, byval gBpp as long, byval bBpp as long, byval aBpp as long)												'' Dither image data to 16bpp or lower (Floyd-Steinberg dithering)
+declare sub ImageFlipVertical(byval image as Image ptr)																														'' Flip image vertically
+declare sub ImageFlipHorizontal(byval image as Image ptr)																														'' Flip image horizontally
+declare sub ImageRotate(byval image as Image ptr, byval degrees as long)																										'' Rotate image by input angle in degrees (-359 to 359)
+declare sub ImageRotateCW(byval image as Image ptr)																															'' Rotate image clockwise 90deg
+declare sub ImageRotateCCW(byval image as Image ptr)																															'' Rotate image counter-clockwise 90deg
+declare sub ImageColorTint(byval image as Image ptr, byval color as RLColor)																									'' Modify image color: tint
+declare sub ImageColorInvert(byval image as Image ptr)																															'' Modify image color: invert
+declare sub ImageColorGrayscale(byval image as Image ptr)																														'' Modify image color: grayscale
+declare sub ImageColorContrast(byval image as Image ptr, byval contrast as single)																								'' Modify image color: contrast (-100 to 100)
+declare sub ImageColorBrightness(byval image as Image ptr, byval brightness as long)																							'' Modify image color: brightness (-255 to 255)
+declare sub ImageColorReplace(byval image as Image ptr, byval color as RLColor, byval replace as RLColor)																		'' Modify image color: replace color
+declare function LoadImageColors(byval image as Image) as RLColor ptr																											'' Load color data from image as a Color array (RGBA - 32bit)
+declare function LoadImagePalette(byval image as Image, byval maxPaletteSize as long, byval colorCount as long ptr) as RLColor ptr												'' Load colors palette from image as a Color array (RGBA - 32bit)
 declare sub UnloadImageColors(byval colors as RLColor ptr)																														'' Unload color data loaded with LoadImageColors()
 declare sub UnloadImagePalette(byval colors as RLColor ptr)																														'' Unload colors palette loaded with LoadImagePalette()
-declare function GetImageAlphaBorder(byval image_ as Image, byval threshold as single) as Rectangle																				'' Get image alpha border rectangle
-declare function GetImageColor(byval image_ as Image, byval x as long, byval y as long) as RLColor																				'' Get image pixel color at (x, y) position
+declare function GetImageAlphaBorder(byval image as Image, byval threshold as single) as Rectangle																				'' Get image alpha border rectangle
+declare function GetImageColor(byval image as Image, byval x as long, byval y as long) as RLColor																				'' Get image pixel color at (x, y) position
 
 '' Image drawing functions
 '' NOTE: Image software-rendering functions (CPU)
@@ -1420,7 +1420,7 @@ declare sub ImageDrawCircle(byval dst as Image ptr, byval centerX as long, byval
 declare sub ImageDrawCircleV(byval dst as Image ptr, byval center as Vector2, byval radius as long, byval color as RLColor)																						'' Draw a filled circle within an image (Vector version)
 declare sub ImageDrawCircleLines(byval dst as Image ptr, byval centerX as long, byval centerY as long, byval radius as long, byval color_ as RLColor)															'' Draw circle outline within an image
 declare sub ImageDrawCircleLinesV(byval dst as Image ptr, byval center as Vector2, byval radius as long, byval color_ as RLColor)																				'' Draw circle outline within an image (Vector version)
-declare sub ImageDrawRectangle(byval dst as Image ptr, byval posX as long, byval posY as long, byval width_ as long, byval height_ as long, byval color as RLColor)												'' Draw rectangle within an image
+declare sub ImageDrawRectangle(byval dst as Image ptr, byval posX as long, byval posY as long, byval width as long, byval height_ as long, byval color as RLColor)												'' Draw rectangle within an image
 declare sub ImageDrawRectangleV(byval dst as Image ptr, byval position as Vector2, byval size as Vector2, byval color as RLColor)																				'' Draw rectangle within an image (Vector version)
 declare sub ImageDrawRectangleRec(byval dst as Image ptr, byval rec as Rectangle, byval color as RLColor)																										'' Draw rectangle within an image
 declare sub ImageDrawRectangleLines(byval dst as Image ptr, byval rec as Rectangle, byval thick as long, byval color as RLColor)																				'' Draw rectangle lines within an image
@@ -1436,12 +1436,12 @@ declare sub ImageDrawTextEx(byval dst as Image ptr, byval font as Font, byval te
 '' Texture loading functions
 '' NOTE: These functions require GPU access
 declare function LoadTexture(byval fileName as const zstring ptr) as Texture2D									'' Load texture from file into GPU memory (VRAM)
-declare function LoadTextureFromImage(byval image_ as Image) as Texture2D										'' Load texture from image data
-declare function LoadTextureCubemap(byval image_ as Image, byval layout as long) as TextureCubemap				'' Load cubemap from image, multiple image cubemap layouts supported
-declare function LoadRenderTexture(byval width_ as long, byval height_ as long) as RenderTexture2D				'' Load texture for rendering (framebuffer)
-declare function IsTextureValid(byval texture as Texture2D) as byte												'' Check if a texture is valid (loaded in GPU)
+declare function LoadTextureFromImage(byval image as Image) as Texture2D										'' Load texture from image data
+declare function LoadTextureCubemap(byval image as Image, byval layout as long) as TextureCubemap				'' Load cubemap from image, multiple image cubemap layouts supported
+declare function LoadRenderTexture(byval width as long, byval height_ as long) as RenderTexture2D				'' Load texture for rendering (framebuffer)
+declare function IsTextureValid(byval texture as Texture2D) as boolean											'' Check if a texture is valid (loaded in GPU)
 declare sub UnloadTexture(byval texture as Texture2D)															'' Unload texture from GPU memory (VRAM)
-declare function IsRenderTextureValid(byval target as RenderTexture2D) as byte									'' Check if a render texture is valid (loaded in GPU)
+declare function IsRenderTextureValid(byval target as RenderTexture2D) as boolean								'' Check if a render texture is valid (loaded in GPU)
 declare sub UnloadRenderTexture(byval target as RenderTexture2D)												'' Unload render texture from GPU memory (VRAM)
 declare sub UpdateTexture(byval texture as Texture2D, byval pixels as const any ptr)							'' Update GPU texture with new data
 declare sub UpdateTextureRec(byval texture as Texture2D, byval rec as Rectangle, byval pixels as const any ptr)	'' Update GPU texture rectangle with new data
@@ -1476,7 +1476,7 @@ declare function ColorLerp(byval color1 as RLColor, byval color2 as RLColor, byv
 declare function GetColor(byval hexValue as ulong) as RLColor														'' Get Color structure from hexadecimal value
 declare function GetPixelColor(byval srcPtr as any ptr, byval format_ as long) as RLColor							'' Get Color from a source pixel pointer of certain format
 declare sub SetPixelColor(byval dstPtr as any ptr, byval color as RLColor, byval format_ as long)					'' Set color formatted into destination pixel pointer
-declare function GetPixelDataSize(byval width_ as long, byval height_ as long, byval format_ as long) as long		'' Get pixel data size in bytes for certain format
+declare function GetPixelDataSize(byval width as long, byval height_ as long, byval format_ as long) as long		'' Get pixel data size in bytes for certain format
 
 ''------------------------------------------------------------------------------------
 '' Font Loading and Text Drawing Functions (Module: text)
@@ -1486,9 +1486,9 @@ declare function GetPixelDataSize(byval width_ as long, byval height_ as long, b
 declare function GetFontDefault() as Font																																														'' Get the default Font
 declare function LoadFont(byval fileName as const zstring ptr) as Font																																							'' Load font from file into GPU memory (VRAM)
 declare function LoadFontEx(byval fileName as const zstring ptr, byval fontSize as long, byval codepoints as long ptr, byval codepointCount as long) as Font																	'' Load font from file with extended parameters, use NULL for codepoints and 0 for codepointCount to load the default character set, font size is provided in pixels height
-declare function LoadFontFromImage(byval image_ as Image, byval key as RLColor, byval firstChar as long) as Font																												'' Load font from Image (XNA style)
+declare function LoadFontFromImage(byval image as Image, byval key as RLColor, byval firstChar as long) as Font																												'' Load font from Image (XNA style)
 declare function LoadFontFromMemory(byval fileType as const zstring ptr, byval fileData as const ubyte ptr, byval dataSize as long, byval fontSize as long, byval codepoints as long ptr, byval codepointCount as long) as Font	'' Load font from memory buffer, fileType refers to extension: i.e. '.ttf'
-declare function IsFontValid(byval font as Font) as byte																																										'' Check if a font is valid (font data loaded, WARNING: GPU texture not checked)
+declare function IsFontValid(byval font as Font) as boolean																																										'' Check if a font is valid (font data loaded, WARNING: GPU texture not checked)
 declare function LoadFontData(byval fileData as const ubyte ptr, byval dataSize as long, byval fontSize as long, byval codepoints as long ptr, byval codepointCount as long, byval type as long) as GlyphInfo ptr				'' Load font data for further use
 declare function GenImageFontAtlas(byval glyphs as const GlyphInfo ptr, byval glyphRecs as Rectangle ptr ptr, byval glyphCount as long, byval fontSize as long, byval padding as long, byval packMethod as long) as Image		'' Generate image font atlas using chars info
 declare sub UnloadFontData(byval glyphs as GlyphInfo ptr, byval glyphCount as long)																																				'' Unload font chars info data (RAM)
@@ -1554,9 +1554,9 @@ declare sub DrawPoint3D(byval position as Vector3, byval color as RLColor)						
 declare sub DrawCircle3D(byval center as Vector3, byval radius as single, byval rotationAxis as Vector3, byval rotationAngle as single, byval color as RLColor)								'' Draw a circle in 3D world space
 declare sub DrawTriangle3D(byval v1 as Vector3, byval v2 as Vector3, byval v3 as Vector3, byval color as RLColor)																			'' Draw a color-filled triangle (vertex in counter-clockwise order!)
 declare sub DrawTriangleStrip3D(byval points as Vector3 ptr, byval pointCount as long, byval color as RLColor)																				'' Draw a triangle strip defined by points
-declare sub DrawCube(byval position as Vector3, byval width_ as single, byval height_ as single, byval length as single, byval color as RLColor)											'' Draw cube
+declare sub DrawCube(byval position as Vector3, byval width as single, byval height_ as single, byval length as single, byval color as RLColor)											'' Draw cube
 declare sub DrawCubeV(byval position as Vector3, byval size as Vector3, byval color as RLColor)																								'' Draw cube (Vector version)
-declare sub DrawCubeWires(byval position as Vector3, byval width_ as single, byval height_ as single, byval length as single, byval color as RLColor)										'' Draw cube wires
+declare sub DrawCubeWires(byval position as Vector3, byval width as single, byval height_ as single, byval length as single, byval color as RLColor)										'' Draw cube wires
 declare sub DrawCubeWiresV(byval position as Vector3, byval size as Vector3, byval color as RLColor)																						'' Draw cube wires (Vector version)
 declare sub DrawSphere(byval centerPos as Vector3, byval radius as single, byval color as RLColor)																							'' Draw sphere
 declare sub DrawSphereEx(byval centerPos as Vector3, byval radius as single, byval rings as long, byval slices as long, byval color as RLColor)												'' Draw sphere with extended parameters
@@ -1578,7 +1578,7 @@ declare sub DrawGrid(byval slices as long, byval spacing as single)													
 '' Model management functions
 declare function LoadModel(byval fileName as const zstring ptr) as Model	'' Load model from files (meshes and materials)
 declare function LoadModelFromMesh(byval mesh as Mesh) as Model				'' Load model from generated mesh (default material)
-declare function IsModelReady(byval model as Model) as byte					'' Check if a model is valid (loaded in GPU, VAO/VBOs)
+declare function IsModelValid(byval model as Model) as boolean				'' Check if a model is valid (loaded in GPU, VAO/VBOs)
 declare sub UnloadModel(byval model as Model)								'' Unload model (including meshes) from memory (RAM and/or VRAM)
 declare function GetModelBoundingBox(byval model as Model) as BoundingBox	'' Compute model bounding box limits (considers all meshes)
 
@@ -1595,7 +1595,7 @@ declare sub DrawBillboardRec(byval camera as Camera, byval texture as Texture2D,
 declare sub DrawBillboardPro(byval camera as Camera, byval texture as Texture2D, byval source as Rectangle, byval position as Vector3, byval up as Vector3, byval size as Vector2, byval origin as Vector2, byval rotation as single, byval tint as RLColor)	'' Draw a billboard texture defined by source and rotation
 
 '' Mesh management functions
-declare sub UploadMesh(byval mesh as Mesh ptr, byval dynamic as long)																				'' Upload mesh vertex data in GPU and provide VAO/VBO ids
+declare sub UploadMesh(byval mesh as Mesh ptr, byval dynamic as boolean)																				'' Upload mesh vertex data in GPU and provide VAO/VBO ids
 declare sub UpdateMeshBuffer(byval mesh as Mesh, byval index as long, byval data_ as const any ptr, byval dataSize as long, byval offset as long)	'' Update mesh vertex data in GPU for a specific buffer index
 declare sub UnloadMesh(byval mesh as Mesh)																											'' Unload mesh data from CPU and GPU
 declare sub DrawMesh(byval mesh as Mesh, byval material as Material, byval transform as Matrix)														'' Draw a 3d mesh with material and transform
@@ -1607,8 +1607,8 @@ declare function ExportMeshAsCode(byval mesh as Mesh, byval fileName as const zs
 
 '' Mesh generation functions
 declare function GenMeshPoly(byval sides as long, byval radius as single) as Mesh												'' Generate polygonal mesh
-declare function GenMeshPlane(byval width_ as single, byval length as single, byval resX as long, byval resZ as long) as Mesh	'' Generate plane mesh (with subdivisions)
-declare function GenMeshCube(byval width_ as single, byval height_ as single, byval length as single) as Mesh					'' Generate cuboid mesh
+declare function GenMeshPlane(byval width as single, byval length as single, byval resX as long, byval resZ as long) as Mesh	'' Generate plane mesh (with subdivisions)
+declare function GenMeshCube(byval width as single, byval height_ as single, byval length as single) as Mesh					'' Generate cuboid mesh
 declare function GenMeshSphere(byval radius as single, byval rings as long, byval slices as long) as Mesh						'' Generate sphere mesh (standard sphere)
 declare function GenMeshHemiSphere(byval radius as single, byval rings as long, byval slices as long) as Mesh					'' Generate half-sphere mesh (no bottom cap)
 declare function GenMeshCylinder(byval radius as single, byval height_ as single, byval slices as long) as Mesh					'' Generate cylinder mesh
@@ -1621,7 +1621,7 @@ declare function GenMeshCubicmap(byval cubicmap as Image, byval cubeSize as Vect
 '' Material loading/unloading functions
 declare function LoadMaterials(byval fileName as const zstring ptr, byval materialCount as long ptr) as Material ptr	'' Load materials from model file
 declare function LoadMaterialDefault() as Material																		'' Load default material (Supports: DIFFUSE, SPECULAR, NORMAL maps)
-declare function IsMaterialValid(byval material as Material) as byte													'' Check if a material is valid (shader assigned, map textures loaded in GPU)
+declare function IsMaterialValid(byval material as Material) as boolean													'' Check if a material is valid (shader assigned, map textures loaded in GPU)
 declare sub UnloadMaterial(byval material as Material)																	'' Unload material from GPU memory (VRAM)
 declare sub SetMaterialTexture(byval material as Material ptr, byval mapType as long, byval texture as Texture2D)		'' Set texture for a material map type (MATERIAL_MAP_DIFFUSE, MATERIAL_MAP_SPECULAR...)
 declare sub SetModelMeshMaterial(byval model as Model ptr, byval meshId as long, byval materialId as long)				'' Set material for a mesh
@@ -1659,12 +1659,12 @@ declare function GetMasterVolume() as single		'' Get master volume (listener)
 '' Wave/Sound loading/unloading functions
 declare function LoadWave(byval fileName as const zstring ptr) as Wave																		'' Load wave data from file
 declare function LoadWaveFromMemory(byval fileType as const zstring ptr, byval fileData as const ubyte ptr, byval dataSize as long) as Wave	'' Load wave from memory buffer, fileType refers to extension: i.e. '.wav'
-declare function IsWaveValid(byval wave as Wave) as byte																					'' Checks if wave data is valid (data loaded and parameters)
+declare function IsWaveValid(byval wave as Wave) as boolean																					'' Checks if wave data is valid (data loaded and parameters)
 declare function LoadSound(byval fileName as const zstring ptr) as Sound																	'' Load sound from file
 declare function LoadSoundFromWave(byval wave as Wave) as Sound																				'' Load sound from wave data
 declare function LoadSoundAlias(byval source as Sound) as Sound																				'' Create a new sound that shares the same sample data as the source sound, does not own the sound data
-declare function IsSoundValid(byval sound as Sound) as byte																					'' Checks if a sound is valid (data loaded and buffers initialized)
-declare sub UpdateSound(byval sound as Sound, byval data_ as const any ptr, byval sampleCount as long)										'' Update sound buffer with new data
+declare function IsSoundValid(byval sound as Sound) as boolean																					'' Checks if a sound is valid (data loaded and buffers initialized)
+declare sub UpdateSound(byval sound as Sound, byval data as any ptr, byval sampleCount as long)										'' Update sound buffer with new data
 declare sub UnloadWave(byval wave as Wave)																									'' Unload wave data
 declare sub UnloadSound(byval sound as Sound)																								'' Unload sound
 declare sub UnloadSoundAlias(byval alias as Sound)																							'' Unload a sound alias (does not deallocate sample data)
@@ -1689,7 +1689,7 @@ declare sub UnloadWaveSamples(byval samples as single ptr)																	'' Un
 '' Music management functions
 declare function LoadMusicStream(byval fileName as const zstring ptr) as Music																		'' Load music stream from file
 declare function LoadMusicStreamFromMemory(byval fileType as const zstring ptr, byval data_ as const ubyte ptr, byval dataSize as long) as Music	'' Load music stream from data
-declare function IsMusicValid(byval music as Music) as byte																							'' Checks if a music stream is valid (context and buffers initialized)
+declare function IsMusicValid(byval music as Music) as boolean																						'' Checks if a music stream is valid (context and buffers initialized)
 declare sub UnloadMusicStream(byval music as Music)																									'' Unload music stream
 declare sub PlayMusicStream(byval music as Music)																									'' Start music playing
 declare function IsMusicStreamPlaying(byval music as Music) as boolean																				'' Check if music is playing
@@ -1706,9 +1706,9 @@ declare function GetMusicTimePlayed(byval music as Music) as single													
 
 '' AudioStream management functions
 declare function LoadAudioStream(byval sampleRate as ulong, byval sampleSize as ulong, byval channels as ulong) as AudioStream	'' Load audio stream (to stream raw audio pcm data)
-declare function IsAudioStreamValid(byval stream as AudioStream) as byte														'' Checks if an audio stream is valid (buffers initialized)
+declare function IsAudioStreamValid(byval stream as AudioStream) as Boolean														'' Checks if an audio stream is valid (buffers initialized)
 declare sub UnloadAudioStream(byval stream as AudioStream)																		'' Unload audio stream and free memory
-declare sub UpdateAudioStream(byval stream as AudioStream, byval data_ as const any ptr, byval frameCount as long)				'' Update audio stream buffers with data
+declare sub UpdateAudioStream(byval stream as AudioStream, byval data_ as any ptr, byval frameCount as long)				'' Update audio stream buffers with data
 declare function IsAudioStreamProcessed(byval stream as AudioStream) as boolean													'' Check if any audio stream buffers requires refill
 declare sub PlayAudioStream(byval stream as AudioStream)																		'' Play audio stream
 declare sub PauseAudioStream(byval stream as AudioStream)																		'' Pause audio stream
