@@ -22,7 +22,7 @@ dim shared as single averageVolume(0 to 399)                  '' Average volume 
 ''------------------------------------------------------------------------------------
 '' Audio processing function
 ''------------------------------------------------------------------------------------
-sub ProcessAudio(buffer as any ptr, frames as ulong)
+sub ProcessAudio cdecl(byval buffer as any ptr, byval frames as ulong)
     dim as single ptr samples = buffer   '' Samples internally stored as <singles>s
     dim as single average = 0.0f               '' Temporary average volume
 
@@ -38,7 +38,7 @@ sub ProcessAudio(buffer as any ptr, frames as ulong)
     next
 
     '' Moving history to the left
-    for i as integer = 0 to 399
+    for i as integer = 0 to 398
         averageVolume(i) = averageVolume(i + 1)
     next
 
@@ -96,7 +96,7 @@ do while not WindowShouldClose()
         DrawText(TextFormat("EXPONENT = %.2f", exponent), 215, 180, 20, LIGHTGRAY)
 
         DrawRectangle(199, 199, 402, 34, LIGHTGRAY)
-        for i as integer = 0 to 400
+        for i as integer = 0 to 399
             DrawLine(201 + i, 232 - averageVolume(i)*32, 201 + i, 232, MAROON)
         next
         DrawRectangleLines(199, 199, 402, 34, GRAY)
