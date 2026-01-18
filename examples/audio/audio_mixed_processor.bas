@@ -61,10 +61,10 @@ InitAudioDevice()              '' Initialize audio device
 dim as AudioCallback ProcAudio = @ProcessAudio
 AttachAudioMixedProcessor(ProcAudio)
 
-dim as Music music = LoadMusicStream("resources/country.mp3")
-dim as Sound sound = LoadSound("resources/coin.wav")
+dim as Music msc = LoadMusicStream("resources/country.mp3")
+dim as Sound snd = LoadSound("resources/coin.wav")
 
-PlayMusicStream(music)
+PlayMusicStream(msc)
 
 SetTargetFPS(60)               '' Set our game to run at 60 frames-per-second
 ''--------------------------------------------------------------------------------------
@@ -73,7 +73,7 @@ SetTargetFPS(60)               '' Set our game to run at 60 frames-per-second
 do while not WindowShouldClose()
     '' Update
     ''----------------------------------------------------------------------------------
-    UpdateMusicStream(music)   '' Update music buffer with new stream data
+    UpdateMusicStream(msc)   '' Update music buffer with new stream data
 
     '' Modify processing variables
     ''----------------------------------------------------------------------------------
@@ -83,7 +83,7 @@ do while not WindowShouldClose()
     if exponent <= 0.5f then exponent = 0.5f
     if exponent >= 3.0f then exponent = 3.0f
 
-    if IsKeyPressed(KEY_SPACE) then PlaySound(sound)
+    if IsKeyPressed(KEY_SPACE) then PlaySound(snd)
 
     '' Draw
     ''----------------------------------------------------------------------------------
@@ -110,7 +110,7 @@ loop
 
 '' De-Initialization
 ''--------------------------------------------------------------------------------------
-UnloadMusicStream(music)   '' Unload music stream buffers from RAM
+UnloadMusicStream(msc)   '' Unload music stream buffers from RAM
 
 DetachAudioMixedProcessor(ProcAudio)  '' Disconnect audio processor
 
