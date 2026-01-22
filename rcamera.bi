@@ -1,7 +1,7 @@
 /'******************************************************************************************
 *
 *   rcamera - Basic camera system with support for multiple camera modes
-*
+*   FreeBASIC headers: Imortis Inglorian 2026
 *   CONFIGURATION:
 *       #define RCAMERA_IMPLEMENTATION
 *           Generates the implementation of the library into the included file.

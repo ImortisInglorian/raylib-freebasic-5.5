@@ -1,7 +1,7 @@
 /'******************************************************************************************
 *
 *   reasings - raylib easings library, based on Robert Penner library
-*
+*   FreeBASIC headers: Imortis Inglorian 2026
 *   Useful easing functions for values animation
 *
 *   This header uses:
@@ -82,9 +82,6 @@
 #ifndef REASINGS_H
 #define REASINGS_H
 
-
-#include "crt/math.bi"       '' Required for: sinf(), cosf(), sqrtf(), powf()
-
 '' Linear Easing functions
 
 function EaseLinearNone(t as single, b as single, c as single, d as single) as single '' Ease: Linear
@@ -105,33 +102,33 @@ end function
 
 '' Sine Easing functions
 function EaseSineIn(t as single, b as single, c as single, d as single) as single '' Ease: Sine In
-    return -c * cosf(t / d * (PI / 2.0f)) + c + b
+    return -c * cos(t / d * (PI / 2.0f)) + c + b
 end function
 
 function EaseSineOut(t as single, b as single, c as single, d as single) as single '' Ease: Sine Out
-    return c * sinf(t / d * (PI / 2.0f)) + b
+    return c * sin(t / d * (PI / 2.0f)) + b
 end function
 
 function EaseSineInOut(t as single, b as single, c as single, d as single) as single '' Ease: Sine In Out
-    return -c / 2.0f * (cosf(PI * t / d) - 1.0f) + b
+    return -c / 2.0f * (cos(PI * t / d) - 1.0f) + b
 end function
 
 '' Circular Easing functions
 function EaseCircIn(byval t as single, b as single, c as single, d as single) as single '' Ease: Circular In
     t /= d
-    return -c * (sqrtf(1.0f - t * t) - 1.0f) + b
+    return -c * (sqr(1.0f - t * t) - 1.0f) + b
 end function
 
 function EaseCircOut(byval t as single, b as single, c as single, d as single) as single '' Ease: Circular Out
     t = t / d - 1.0f
-    return c * sqrtf(1.0f - t * t) + b
+    return c * sqr(1.0f - t * t) + b
 end function
 
 function EaseCircInOut(byval t as single, b as single, c as single, d as single) as single '' Ease: Circular In Out
     t /= d
-    if t / 2.0f < 1.0f then return -c / 2.0f * (sqrtf(1.0f - t * t) - 1.0f) + b
+    if t / 2.0f < 1.0f then return -c / 2.0f * (sqr(1.0f - t * t) - 1.0f) + b
     t -= 2.0f
-    return c / 2.0f * (sqrtf(1.0f - t * t) + 1.0f) + b
+    return c / 2.0f * (sqr(1.0f - t * t) + 1.0f) + b
 end function
 
 '' Cubic Easing functions
@@ -171,20 +168,20 @@ end function
 
 '' Exponential Easing functions
 function EaseExpoIn(t as single, b as single, c as single, d as single) as single '' Ease: Exponential In
-    return iif(t = 0.0f, b, c * powf(2.0f, 10.0f * (t / d - 1.0f)) + b)
+    return iif(t = 0.0f, b, c * (2.0f ^ 10.0f * (t / d - 1.0f)) + b)
 end function
 
 function EaseExpoOut(t as single, b as single, c as single, d as single) as single '' Ease: Exponential Out
-    return iif(t = d, b + c, c * (-powf(2.0f, -10.0f * t / d) + 1.0f) + b)
+    return iif(t = d, b + c, c * (-(2.0f ^ -10.0f * t / d) + 1.0f) + b)
 end function
 
 function EaseExpoInOut(byval t as single, b as single, c as single, d as single) as single '' Ease: Exponential In Out
     if t = 0.0f then return b
     if t = d then return b + c
     t /= d
-    if t / 2.0f < 1.0f then return c / 2.0f * powf(2.0f, 10.0f * (t - 1.0f)) + b
+    if t / 2.0f < 1.0f then return c / 2.0f * (2.0f ^ 10.0f * (t - 1.0f)) + b
 
-    return c / 2.0f * (-powf(2.0f, -10.0f * (t - 1.0f)) + 2.0f) + b
+    return c / 2.0f * (-(2.0f ^ -10.0f * (t - 1.0f)) + 2.0f) + b
 end function
 
 '' Back Easing functions
@@ -257,9 +254,9 @@ function EaseElasticIn(byval t as single, b as single, c as single, d as single)
     dim as single a = c
     dim as single s = p / 4.0f
     t -= 1.0f
-    dim as single postFix = a * powf(2.0f, 10.0f * t)
+    dim as single postFix = a * (2.0f ^ 10.0f * t)
 
-    return -(postFix * sinf((t * d - s) * (2.0f * PI) / p)) + b
+    return -(postFix * sin((t * d - s) * (2.0f * PI) / p)) + b
 end function
 
 function EaseElasticOut(byval t as single, b as single, c as single, d as single) as single '' Ease: Elastic Out
@@ -271,7 +268,7 @@ function EaseElasticOut(byval t as single, b as single, c as single, d as single
     dim as single a = c
     dim as single s = p / 4.0f
 
-    return a * powf(2.0f,-10.0f * t) * sinf((t * d - s) * (2.0f * PI) / p) + c + b
+    return a * (2.0f ^ -10.0f * t) * sin((t * d - s) * (2.0f * PI) / p) + c + b
 end function
 
 function EaseElasticInOut(byval t as single, b as single, c as single, d as single) as single '' Ease: Elastic In Out
@@ -285,13 +282,13 @@ function EaseElasticInOut(byval t as single, b as single, c as single, d as sing
 
     if t < 1.0f then
         t -= 1.0f
-        dim as single postFix = a * powf(2.0f, 10.0f * t)
-        return -0.5f * (postFix * sinf((t * d - s) * (2.0f * PI) / p)) + b
+        dim as single postFix = a * (2.0f ^ 10.0f * t)
+        return -0.5f * (postFix * sin((t * d - s) * (2.0f * PI) / p)) + b
     end if
     t -= 1.0f
-    dim as single postFix = a * powf(2.0f, -10.0f * t)
+    dim as single postFix = a * (2.0f ^ -10.0f * t)
 
-    return postFix * sinf((t * d - s) * (2.0f * PI) / p) * 0.5f + c + b
+    return postFix * sin((t * d - s) * (2.0f * PI) / p) * 0.5f + c + b
 end function
 
 #endif '' REASINGS_H

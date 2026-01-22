@@ -1,7 +1,7 @@
 /'*********************************************************************************************
 *
 *   raylib.lights - Some useful functions to deal with lights data
-*
+*   FreeBASIC headers: Imortis Inglorian 2026
 *   CONFIGURATION:
 *
 *   #define RLIGHTS_IMPLEMENTATION
