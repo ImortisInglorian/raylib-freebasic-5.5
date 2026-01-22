@@ -15,7 +15,6 @@
 *
 *******************************************************************************************'/
 #include "../../raylib.bi"
-#include once "crt.bi"
 
 dim shared as single exponent = 1.0f                 '' Audio exponentiation value
 dim shared as single averageVolume(399)                  '' Average volume history
@@ -31,11 +30,11 @@ sub ProcessAudio cdecl(byval buffer as any ptr, byval frames as ulong)
         dim as single ptr leftChan = @samples[frame*2 + 0]
         dim as single ptr rightChan = @samples[frame*2 + 1]
 
-        *leftChan = powf(fabsf(*leftChan), exponent)* iif(*leftChan < 0.0f, -1.0f, 1.0f)
-        *rightChan = powf(fabsf(*rightChan), exponent)* iif(*rightChan < 0.0f, -1.0f, 1.0f)
+        *leftChan = (abs(*leftChan) ^ exponent)* iif(*leftChan < 0.0f, -1.0f, 1.0f)
+        *rightChan =(abs(*rightChan) ^ exponent)* iif(*rightChan < 0.0f, -1.0f, 1.0f)
 
-        average += fabsf(*leftChan)/frames   '' accumulating average volume
-        average += fabsf(*rightChan)/frames
+        average += abs(*leftChan)/frames   '' accumulating average volume
+        average += abs(*rightChan)/frames
     next
 
     '' Moving history to the left
