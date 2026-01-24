@@ -2,3 +2,4 @@
 * text=auto
 *.wav binary
 *.oog binary
+*.so binary
