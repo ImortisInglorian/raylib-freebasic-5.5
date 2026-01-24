@@ -89,7 +89,6 @@
 
 #inclib "raylib"
 
-
 #include once "raymath.bi" '' Include the types for Vector2, Vector3, Vector4, Matrix, and Quaternion
 
 extern "C"
