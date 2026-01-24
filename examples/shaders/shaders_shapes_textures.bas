@@ -1,4 +1,4 @@
-/*******************************************************************************************
+/'******************************************************************************************
 *
 *   raylib [shaders] example - Apply a shader to some shape or texture
 *
@@ -16,106 +16,89 @@
 *
 *   Copyright (c) 2015-2024 Ramon Santamaria (@raysan5)
 *
-********************************************************************************************/
+*******************************************************************************************'/
 
-#include "raylib.h"
+#include "../../raylib.bi"
 
-#if defined(PLATFORM_DESKTOP)
-    #define GLSL_VERSION            330
-#else   // PLATFORM_ANDROID, PLATFORM_WEB
-    #define GLSL_VERSION            100
-#endif
+#define GLSL_VERSION            330
 
-//------------------------------------------------------------------------------------
-// Program main entry point
-//------------------------------------------------------------------------------------
-int main(void)
-{
-    // Initialization
-    //--------------------------------------------------------------------------------------
-    const int screenWidth = 800;
-    const int screenHeight = 450;
+'' Initialization
+''--------------------------------------------------------------------------------------
+const as long screenWidth = 800
+const as long screenHeight = 450
 
-    InitWindow(screenWidth, screenHeight, "raylib [shaders] example - shapes and texture shaders");
+InitWindow(screenWidth, screenHeight, "raylib [shaders] example - shapes and texture shaders")
 
-    Texture2D fudesumi = LoadTexture("resources/fudesumi.png");
+dim as Texture2D fudesumi = LoadTexture("resources/fudesumi.png")
 
-    // Load shader to be used on some parts drawing
-    // NOTE 1: Using GLSL 330 shader version, on OpenGL ES 2.0 use GLSL 100 shader version
-    // NOTE 2: Defining 0 (NULL) for vertex shader forces usage of internal default vertex shader
-    Shader shader = LoadShader(0, TextFormat("resources/shaders/glsl%i/grayscale.fs", GLSL_VERSION));
+'' Load shader to be used on some parts drawing
+'' NOTE 1: Using GLSL 330 shader version, on OpenGL ES 2.0 use GLSL 100 shader version
+'' NOTE 2: Defining 0 (NULL) for vertex shader forces usage of internal default vertex shader
+dim as Shader shade = LoadShader(0, TextFormat("resources/shaders/glsl%i/grayscale.fs", GLSL_VERSION))
 
-    SetTargetFPS(60);               // Set our game to run at 60 frames-per-second
-    //--------------------------------------------------------------------------------------
+SetTargetFPS(60)               '' Set our game to run at 60 frames-per-second
+''--------------------------------------------------------------------------------------
 
-    // Main game loop
-    while (!WindowShouldClose())    // Detect window close button or ESC key
-    {
-        // Update
-        //----------------------------------------------------------------------------------
-        // TODO: Update your variables here
-        //----------------------------------------------------------------------------------
+'' Main game loop
+do while not WindowShouldClose()    '' Detect window close button or ESC key
+    '' Update
+    ''----------------------------------------------------------------------------------
+    '' TODO: Update your variables here
+    ''----------------------------------------------------------------------------------
 
-        // Draw
-        //----------------------------------------------------------------------------------
-        BeginDrawing();
+    '' Draw
+    ''----------------------------------------------------------------------------------
+    BeginDrawing()
 
-            ClearBackground(RAYWHITE);
+        ClearBackground(RAYWHITE)
 
-            // Start drawing with default shader
+        '' Start drawing with default shader
 
-            DrawText("USING DEFAULT SHADER", 20, 40, 10, RED);
+        DrawText("USING DEFAULT SHADER", 20, 40, 10, RED)
 
-            DrawCircle(80, 120, 35, DARKBLUE);
-            DrawCircleGradient(80, 220, 60, GREEN, SKYBLUE);
-            DrawCircleLines(80, 340, 80, DARKBLUE);
+        DrawCircle(80, 120, 35, DARKBLUE)
+        DrawCircleGradient(80, 220, 60, GREEN, SKYBLUE)
+        DrawCircleLines(80, 340, 80, DARKBLUE)
 
 
-            // Activate our custom shader to be applied on next shapes/textures drawings
-            BeginShaderMode(shader);
+        '' Activate our custom shader to be applied on next shapes/textures drawings
+        BeginShaderMode(shade)
 
-                DrawText("USING CUSTOM SHADER", 190, 40, 10, RED);
+            DrawText("USING CUSTOM SHADER", 190, 40, 10, RED)
 
-                DrawRectangle(250 - 60, 90, 120, 60, RED);
-                DrawRectangleGradientH(250 - 90, 170, 180, 130, MAROON, GOLD);
-                DrawRectangleLines(250 - 40, 320, 80, 60, ORANGE);
+            DrawRectangle(250 - 60, 90, 120, 60, RED)
+            DrawRectangleGradientH(250 - 90, 170, 180, 130, MAROON, GOLD)
+            DrawRectangleLines(250 - 40, 320, 80, 60, ORANGE)
 
-            // Activate our default shader for next drawings
-            EndShaderMode();
+        '' Activate our default shader for next drawings
+        EndShaderMode()
 
-            DrawText("USING DEFAULT SHADER", 370, 40, 10, RED);
+        DrawText("USING DEFAULT SHADER", 370, 40, 10, RED)
 
-            DrawTriangle((Vector2){430, 80},
-                         (Vector2){430 - 60, 150},
-                         (Vector2){430 + 60, 150}, VIOLET);
+        DrawTriangle(Vector2(430, 80), Vector2(430 - 60, 150), Vector2(430 + 60, 150), VIOLET)
 
-            DrawTriangleLines((Vector2){430, 160},
-                              (Vector2){430 - 20, 230},
-                              (Vector2){430 + 20, 230}, DARKBLUE);
+        DrawTriangleLines(Vector2(430, 160), Vector2(430 - 20, 230), Vector2(430 + 20, 230), DARKBLUE)
 
-            DrawPoly((Vector2){430, 320}, 6, 80, 0, BROWN);
+        DrawPoly(Vector2(430, 320), 6, 80, 0, BROWN)
 
-            // Activate our custom shader to be applied on next shapes/textures drawings
-            BeginShaderMode(shader);
+        '' Activate our custom shader to be applied on next shapes/textures drawings
+        BeginShaderMode(shade)
 
-                DrawTexture(fudesumi, 500, -30, WHITE);    // Using custom shader
+            DrawTexture(fudesumi, 500, -30, WHITE)    '' Using custom shader
 
-            // Activate our default shader for next drawings
-            EndShaderMode();
+        '' Activate our default shader for next drawings
+        EndShaderMode()
 
-            DrawText("(c) Fudesumi sprite by Eiden Marsal", 380, screenHeight - 20, 10, GRAY);
+        DrawText("(c) Fudesumi sprite by Eiden Marsal", 380, screenHeight - 20, 10, GRAY)
 
-        EndDrawing();
-        //----------------------------------------------------------------------------------
-    }
+    EndDrawing()
+    ''----------------------------------------------------------------------------------
+loop
 
-    // De-Initialization
-    //--------------------------------------------------------------------------------------
-    UnloadShader(shader);       // Unload shader
-    UnloadTexture(fudesumi);    // Unload texture
+'' De-Initialization
+''--------------------------------------------------------------------------------------
+UnloadShader(shade)       '' Unload shader
+UnloadTexture(fudesumi)    '' Unload texture
 
-    CloseWindow();              // Close window and OpenGL context
-    //--------------------------------------------------------------------------------------
-
-    return 0;
-}
+CloseWindow()              '' Close window and OpenGL context
+''--------------------------------------------------------------------------------------

@@ -1,4 +1,4 @@
-/*******************************************************************************************
+/'******************************************************************************************
 *
 *   raylib [shaders] example - Vertex displacement
 *
@@ -11,109 +11,95 @@
 *
 *   Copyright (c) 2023 <Alex ZH> (@ZzzhHe)
 *
-********************************************************************************************/
+*******************************************************************************************'/
 
-#include "raylib.h"
+#include "../../raylib.bi"
+#include "../../rlgl.bi"
+#include "../../rlights.bi"
 
-#include "rlgl.h"
+#define GLSL_VERSION            330
 
-#define RLIGHTS_IMPLEMENTATION
-#include "rlights.h"
+'' Initialization
+''--------------------------------------------------------------------------------------
+const as long screenWidth = 800
+const as long screenHeight = 450
 
-#if defined(PLATFORM_DESKTOP)
-    #define GLSL_VERSION            330
-#else   // PLATFORM_ANDROID, PLATFORM_WEB
-    #define GLSL_VERSION            100
-#endif
+InitWindow(screenWidth, screenHeight, "raylib [shaders] example - vertex displacement")
 
-//------------------------------------------------------------------------------------
-// Program main entry point
-//------------------------------------------------------------------------------------
-int main(void)
-{
-    // Initialization
-    //--------------------------------------------------------------------------------------
-    const int screenWidth = 800;
-    const int screenHeight = 450;
+'' set up camera
+dim as Camera cam
+with cam
+    .position = Vector3(20.0f, 5.0f, -20.0f)
+    .target = Vector3(0.0f, 0.0f, 0.0f)
+    .up = Vector3(0.0f, 1.0f, 0.0f)
+    .fovy = 60.0f
+    .projection = CAMERA_PERSPECTIVE
+end with
 
-    InitWindow(screenWidth, screenHeight, "raylib [shaders] example - vertex displacement");
+'' Load vertex and fragment shaders
+dim as Shader shade = LoadShader( _
+    TextFormat("resources/shaders/glsl%i/vertex_displacement.vs", GLSL_VERSION), _
+    TextFormat("resources/shaders/glsl%i/vertex_displacement.fs", GLSL_VERSION))
 
-    // set up camera
-    Camera camera = {0};
-    camera.position = (Vector3) {20.0f, 5.0f, -20.0f};
-    camera.target = (Vector3) {0.0f, 0.0f, 0.0f};
-    camera.up = (Vector3) {0.0f, 1.0f, 0.0f};
-    camera.fovy = 60.0f;
-    camera.projection = CAMERA_PERSPECTIVE;
+'' Load perlin noise texture
+dim as Image perlinNoiseImage = GenImagePerlinNoise(512, 512, 0, 0, 1.0f)
+dim as Texture perlinNoiseMap = LoadTextureFromImage(perlinNoiseImage)
+UnloadImage(perlinNoiseImage)
 
-    // Load vertex and fragment shaders
-    Shader shader = LoadShader(
-        TextFormat("resources/shaders/glsl%i/vertex_displacement.vs", GLSL_VERSION),
-        TextFormat("resources/shaders/glsl%i/vertex_displacement.fs", GLSL_VERSION));
-    
-    // Load perlin noise texture
-    Image perlinNoiseImage = GenImagePerlinNoise(512, 512, 0, 0, 1.0f);
-    Texture perlinNoiseMap = LoadTextureFromImage(perlinNoiseImage);
-    UnloadImage(perlinNoiseImage);
+'' Set shader uniform location
+dim as long perlinNoiseMapLoc = GetShaderLocation(shade, "perlinNoiseMap")
+rlEnableShader(shade.id)
+rlActiveTextureSlot(1)
+rlEnableTexture(perlinNoiseMap.id)
+rlSetUniformSampler(perlinNoiseMapLoc, 1)
 
-    // Set shader uniform location
-    int perlinNoiseMapLoc = GetShaderLocation(shader, "perlinNoiseMap");
-    rlEnableShader(shader.id);
-    rlActiveTextureSlot(1);
-    rlEnableTexture(perlinNoiseMap.id);
-    rlSetUniformSampler(perlinNoiseMapLoc, 1);
-    
-    // Create a plane mesh and model
-    Mesh planeMesh = GenMeshPlane(50, 50, 50, 50);
-    Model planeModel = LoadModelFromMesh(planeMesh);
-    // Set plane model material
-    planeModel.materials[0].shader = shader;
+'' Create a plane mesh and model
+dim as Mesh planeMesh = GenMeshPlane(50, 50, 50, 50)
+dim as Model planeModel = LoadModelFromMesh(planeMesh)
+'' Set plane model material
+planeModel.materials[0].shader = shade
 
-    float time = 0.0f;
+dim as single tme = 0.0f
 
-    SetTargetFPS(60);
-    //--------------------------------------------------------------------------------------
+SetTargetFPS(60)
+''--------------------------------------------------------------------------------------
 
-    // Main game loop
-    while (!WindowShouldClose())    // Detect window close button or ESC key
-    {
-        // Update
-        //----------------------------------------------------------------------------------
-        UpdateCamera(&camera, CAMERA_FREE); // Update camera
+'' Main game loop
+do while not WindowShouldClose()    '' Detect window close button or ESC key
+    '' Update
+    ''----------------------------------------------------------------------------------
+    UpdateCamera(@cam, CAMERA_FREE) '' Update camera
 
-        time += GetFrameTime(); // Update time variable
-        SetShaderValue(shader, GetShaderLocation(shader, "time"), &time, SHADER_UNIFORM_FLOAT); // Send time value to shader
+    tme += GetFrameTime() '' Update time variable
+    SetShaderValue(shade, GetShaderLocation(shade, "tme"), @tme, SHADER_UNIFORM_FLOAT) '' Send time value to shader
 
-        // Draw
-        //----------------------------------------------------------------------------------
-        BeginDrawing();
+    '' Draw
+    ''----------------------------------------------------------------------------------
+    BeginDrawing()
 
-            ClearBackground(RAYWHITE);
+        ClearBackground(RAYWHITE)
 
-            BeginMode3D(camera);
+        BeginMode3D(cam)
 
-                BeginShaderMode(shader);
-                    // Draw plane model
-                    DrawModel(planeModel, (Vector3){ 0.0f, 0.0f, 0.0f }, 1.0f, (Color) {255, 255, 255, 255});
-                EndShaderMode();
+            BeginShaderMode(shade)
+                '' Draw plane model
+                DrawModel(planeModel, Vector3(0.0f, 0.0f, 0.0f), 1.0f, RLColor(255, 255, 255, 255))
+            EndShaderMode()
 
-            EndMode3D();
+        EndMode3D()
 
-            DrawText("Vertex displacement", 10, 10, 20, DARKGRAY);
-            DrawFPS(10, 40);
+        DrawText("Vertex displacement", 10, 10, 20, DARKGRAY)
+        DrawFPS(10, 40)
 
-        EndDrawing();
-        //----------------------------------------------------------------------------------
-    }
+    EndDrawing()
+    ''----------------------------------------------------------------------------------
+loop
 
-    // De-Initialization
-    //--------------------------------------------------------------------------------------
-    UnloadShader(shader);
-    UnloadModel(planeModel);
-    UnloadTexture(perlinNoiseMap);
+'' De-Initialization
+''--------------------------------------------------------------------------------------
+UnloadShader(shade)
+UnloadModel(planeModel)
+UnloadTexture(perlinNoiseMap)
 
-    CloseWindow();        // Close window and OpenGL context
-    //--------------------------------------------------------------------------------------
-
-    return 0;
-}
+CloseWindow()        '' Close window and OpenGL context
+''--------------------------------------------------------------------------------------

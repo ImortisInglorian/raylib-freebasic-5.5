@@ -1,4 +1,4 @@
-/*******************************************************************************************
+/'******************************************************************************************
 *
 *   raylib [shaders] example - texture tiling
 *
@@ -11,95 +11,84 @@
 *
 *   Copyright (c) 2023 Luis Almeida (@luis605)
 *
-********************************************************************************************/
+*******************************************************************************************'/
 
-#include "raylib.h"
+#include "../../raylib.bi"
 
-#if defined(PLATFORM_DESKTOP)
-    #define GLSL_VERSION            330
-#else   // PLATFORM_ANDROID, PLATFORM_WEB
-    #define GLSL_VERSION            100
-#endif
+#define GLSL_VERSION            330
 
-//------------------------------------------------------------------------------------
-// Program main entry point
-//------------------------------------------------------------------------------------
-int main(void)
-{
-    // Initialization
-    //--------------------------------------------------------------------------------------
-    const int screenWidth = 800;
-    const int screenHeight = 450;
+'' Initialization
+''--------------------------------------------------------------------------------------
+const as long screenWidth = 800
+const as long screenHeight = 450
 
-    InitWindow(screenWidth, screenHeight, "raylib [shaders] example - texture tiling");
+InitWindow(screenWidth, screenHeight, "raylib [shaders] example - texture tiling")
 
-    // Define the camera to look into our 3d world
-    Camera3D camera = { 0 };
-    camera.position = (Vector3){ 4.0f, 4.0f, 4.0f }; // Camera position
-    camera.target = (Vector3){ 0.0f, 0.5f, 0.0f };      // Camera looking at point
-    camera.up = (Vector3){ 0.0f, 1.0f, 0.0f };          // Camera up vector (rotation towards target)
-    camera.fovy = 45.0f;                                // Camera field-of-view Y
-    camera.projection = CAMERA_PERSPECTIVE;             // Camera projection type
+'' Define the camera to look into our 3d world
+dim as Camera3D cam
+with cam
+    .position = Vector3(4.0f, 4.0f, 4.0f) '' Camera position
+    .target = Vector3(0.0f, 0.5f, 0.0f)      '' Camera looking at point
+    .up = Vector3(0.0f, 1.0f, 0.0f)          '' Camera up vector (rotation towards target)
+    .fovy = 45.0f                                '' Camera field-of-view Y
+    .projection = CAMERA_PERSPECTIVE             '' Camera projection type
+end with
 
-    // Load a cube model
-    Mesh cube = GenMeshCube(1.0f, 1.0f, 1.0f);
-    Model model = LoadModelFromMesh(cube);
+'' Load a cube model
+dim as Mesh cube = GenMeshCube(1.0f, 1.0f, 1.0f)
+dim as Model mdl = LoadModelFromMesh(cube)
+
+'' Load a texture and assign to cube model
+dim as Texture2D tex = LoadTexture("resources/cubicmap_atlas.png")
+mdl.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = tex
+
+'' Set the texture tiling using a shader
+dim as single tiling(1) = {3.0f, 3.0f}
+dim as Shader shade = LoadShader(0, TextFormat("resources/shaders/glsl%i/tiling.fs", GLSL_VERSION))
+SetShaderValue(shade, GetShaderLocation(shade, "tiling"), @tiling(0), SHADER_UNIFORM_VEC2)
+mdl.materials[0].shader = shade
+
+DisableCursor()                    '' Limit cursor to relative movement inside the window
+
+SetTargetFPS(60)                   '' Set our game to run at 60 frames-per-second
+''--------------------------------------------------------------------------------------
+
+'' Main game loop
+do while not WindowShouldClose()        '' Detect window close button or ESC key
+    '' Update
+    ''----------------------------------------------------------------------------------
+    UpdateCamera(@cam, CAMERA_FREE)
+
+    if IsKeyPressed(KEY_Z) then cam.target = Vector3(0.0f, 0.5f, 0.0f)
+    ''----------------------------------------------------------------------------------
+
+    '' Draw
+    ''----------------------------------------------------------------------------------
+    BeginDrawing()
     
-    // Load a texture and assign to cube model
-    Texture2D texture = LoadTexture("resources/cubicmap_atlas.png");
-    model.materials[0].maps[MATERIAL_MAP_DIFFUSE].texture = texture;
+        ClearBackground(RAYWHITE)
 
-    // Set the texture tiling using a shader
-    float tiling[2] = { 3.0f, 3.0f };
-    Shader shader = LoadShader(0, TextFormat("resources/shaders/glsl%i/tiling.fs", GLSL_VERSION));
-    SetShaderValue(shader, GetShaderLocation(shader, "tiling"), tiling, SHADER_UNIFORM_VEC2);
-    model.materials[0].shader = shader;
-
-    DisableCursor();                    // Limit cursor to relative movement inside the window
-
-    SetTargetFPS(60);                   // Set our game to run at 60 frames-per-second
-    //--------------------------------------------------------------------------------------
-
-    // Main game loop
-    while (!WindowShouldClose())        // Detect window close button or ESC key
-    {
-        // Update
-        //----------------------------------------------------------------------------------
-        UpdateCamera(&camera, CAMERA_FREE);
-
-        if (IsKeyPressed('Z')) camera.target = (Vector3){ 0.0f, 0.5f, 0.0f };
-        //----------------------------------------------------------------------------------
-
-        // Draw
-        //----------------------------------------------------------------------------------
-        BeginDrawing();
+        BeginMode3D(cam)
         
-            ClearBackground(RAYWHITE);
+            BeginShaderMode(shade)
+                DrawModel(mdl, Vector3(0.0f, 0.0f, 0.0f), 2.0f, WHITE)
+            EndShaderMode()
 
-            BeginMode3D(camera);
+            DrawGrid(10, 1.0f)
             
-                BeginShaderMode(shader);
-                    DrawModel(model, (Vector3){ 0.0f, 0.0f, 0.0f }, 2.0f, WHITE);
-                EndShaderMode();
+        EndMode3D()
 
-                DrawGrid(10, 1.0f);
-                
-            EndMode3D();
+        DrawText("Use mouse to rotate the camera", 10, 10, 20, DARKGRAY)
 
-            DrawText("Use mouse to rotate the camera", 10, 10, 20, DARKGRAY);
+    EndDrawing()
+    ''----------------------------------------------------------------------------------
+loop
 
-        EndDrawing();
-        //----------------------------------------------------------------------------------
-    }
+'' De-Initialization
+''--------------------------------------------------------------------------------------
+UnloadModel(mdl)         '' Unload model
+UnloadShader(shade)       '' Unload shader
+UnloadTexture(tex)     '' Unload texture
 
-    // De-Initialization
-    //--------------------------------------------------------------------------------------
-    UnloadModel(model);         // Unload model
-    UnloadShader(shader);       // Unload shader
-    UnloadTexture(texture);     // Unload texture
-
-    CloseWindow();              // Close window and OpenGL context
-    //--------------------------------------------------------------------------------------
-    
-    return 0;
-}
+CloseWindow()              '' Close window and OpenGL context
+''--------------------------------------------------------------------------------------
