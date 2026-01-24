@@ -3,3 +3,5 @@
 *.wav binary
 *.oog binary
 *.so binary
+*.0 binary
+*.550 binary
