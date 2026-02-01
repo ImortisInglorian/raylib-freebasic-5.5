@@ -211,12 +211,25 @@ end constructor
 
 '' Image, pixel data stored in CPU memory (RAM)
 type Image
+	declare constructor()
+	declare constructor(dta as any ptr, widt as long, height as long, mipmaps as long, formt as long)
 	data as any ptr 	'' Image raw data
 	width as long		'' Image base width
 	height as long 		'' Image base height
 	mipmaps as long 	'' Mipmap levels, 1 by default
 	format as long 		'' Data format (PixelFormat type)
 end type
+
+constructor Image()
+end constructor
+
+constructor Image(dta as any ptr, widt as long, height as long, mipmaps as long, formt as long)
+	this.data = dta
+	this.width = widt
+	this.height = height
+	this.mipmaps = mipmaps
+	this.format = formt
+end constructor
 
 '' Texture, tex data stored in GPU memory (VRAM)
 type Texture
@@ -244,6 +257,8 @@ type RenderTexture2D as RenderTexture
 
 '' NPatchInfo, n-patch layout info
 type NPatchInfo
+	declare constructor()
+	declare constructor(source as Rectangle, lft as long, top as long, rght as long, bottom as long, layout as long)
 	source as Rectangle 	'' Texture source rectangle
 	left as long 			'' Left border offset
 	top as long 			'' Top border offset
@@ -251,6 +266,18 @@ type NPatchInfo
 	bottom as long 			'' Bottom border offset
 	layout as long 			'' Layout of the n-patch: 3x3, 1x3 or 3x1
 end type
+
+constructor NPatchInfo()
+end constructor
+
+constructor NPatchInfo(source as Rectangle, lft as long, top as long, rght as long, bottom as long, layout as long)
+	this.source = source
+	this.left = lft
+	this.top = top
+	this.right = rght
+	this.bottom = bottom
+	this.layout = layout
+end constructor
 
 '' GlyphInfo, font characters glyphs info
 type GlyphInfo
@@ -351,10 +378,21 @@ end type
 
 '' MaterialMap
 type MaterialMap
+	declare constructor()
+	declare constructor(tex as Texture2D, clr as RLColor, value as single)
 	texture as Texture2D 	'' Material map texture
 	color as RLColor 		'' Material map color
 	value as single 		'' Material map value
 end type
+
+constructor MaterialMap()
+end constructor
+
+constructor MaterialMap(tex as Texture2D, clr as RLColor, value as single)
+	this.texture = tex
+	this.color = clr
+	this.value = value
+end constructor
 
 '' Material, includes shader and maps
 type Material
@@ -365,10 +403,21 @@ end type
 
 '' Transform, vertex transformation data
 type Transform
+	declare constructor()
+	declare constructor(translation as Vector3, rotation as Quaternion, scale as Vector3)
 	translation as Vector3 	'' Translation
 	rotation as Quaternion 	'' Rotation
 	scale as Vector3 		'' Scale
 end type
+
+constructor Transform()
+end constructor
+
+constructor Transform(translation as Vector3, rotation as Quaternion, scale as Vector3)
+	this.translation = translation
+	this.rotation = rotation
+	this.scale = scale
+end constructor
 
 '' Bone, skeletal animation bone
 type BoneInfo
