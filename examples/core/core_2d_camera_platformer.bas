@@ -17,6 +17,8 @@
 
 #include "../../raylib.bi"
 
+#define GETMAX(a,b) iif(a > b, a, b)
+#define GETMIN(a,b) iif(a < b, a, b)
 #define G 400
 #define PLAYER_JUMP_SPD 350.0f
 #define PLAYER_HOR_SPD 200.0f
@@ -215,10 +217,10 @@ sub UpdateCameraCenterInsideMap(cam as Camera2D ptr, play as Player ptr, envItem
     dim as single minX = 1000, minY = 1000, maxX = -1000, maxY = -1000
 
     for i as integer = 0 to envItemsLength - 1
-        minX = fminf(envItems(i).rect.x, minX)
-        maxX = fmaxf(envItems(i).rect.x + envItems(i).rect.width, maxX)
-        minY = fminf(envItems(i).rect.y, minY)
-        maxY = fmaxf(envItems(i).rect.y + envItems(i).rect.height, maxY)
+        minX = GETMIN(envItems(i).rect.x, minX)
+        maxX = GETMAX(envItems(i).rect.x + envItems(i).rect.width, maxX)
+        minY = GETMIN(envItems(i).rect.y, minY)
+        maxY = GETMAX(envItems(i).rect.y + envItems(i).rect.height, maxY)
     next
 
     dim as Vector2 max = GetWorldToScreen2D(Vector2(maxX, maxY), *cam)
@@ -240,7 +242,7 @@ sub UpdateCameraCenterSmoothFollow(cam as Camera2D ptr, play as Player ptr, envI
     dim as single length = Vector2Length(diff)
 
     if length > minEffectLength then
-        dim as single speed = fmaxf(fractionSpeed*length, minSpeed)
+        dim as single speed = GETMAX(fractionSpeed*length, minSpeed)
         cam->target = Vector2Add(cam->target, Vector2Scale(diff, speed*delta/length))
     end if
 end sub

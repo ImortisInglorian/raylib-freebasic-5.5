@@ -61,7 +61,7 @@ do while not WindowShouldClose()        '' Detect window close button or ESC key
             cam.target = mouseWorldPos
 
             '' Zoom increment
-            dim as single scaleFactor = 1.0f + (0.25f * fabsf(wheel))
+            dim as single scaleFactor = 1.0f + (0.25f * abs(wheel))
             if wheel < 0 then scaleFactor = 1.0f / scaleFactor
             cam.zoom = Clamp(cam.zoom * scaleFactor, 0.125f, 64.0f)
         end if
@@ -81,7 +81,7 @@ do while not WindowShouldClose()        '' Detect window close button or ESC key
         if IsMouseButtonDown(MOUSE_BUTTON_RIGHT) then
             '' Zoom increment
             dim as single deltaX = GetMouseDelta().x
-            dim as single scaleFactor = 1.0f + (0.01f * fabsf(deltaX))
+            dim as single scaleFactor = 1.0f + (0.01f * abs(deltaX))
             if (deltaX < 0) then scaleFactor = 1.0f / scaleFactor
             cam.zoom = Clamp(cam.zoom * scaleFactor, 0.125f, 64.0f)
         end if

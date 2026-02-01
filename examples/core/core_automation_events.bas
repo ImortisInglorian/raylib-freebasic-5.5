@@ -15,6 +15,8 @@
 
 #include "../../raylib.bi"
 
+#define GETMAX(a,b) iif(a > b, a, b)
+#define GETMIN(a,b) iif(a < b, a, b)
 #define GRAVITY 400
 #define PLAYER_JUMP_SPD 350.0f
 #define PLAYER_HOR_SPD 200.0f
@@ -218,10 +220,10 @@ do while not WindowShouldClose()
 
     for i as integer = 0 to MAX_ENVIRONMENT_ELEMENTS - 1
         dim as EnvElement ptr element = @envElements(i)
-        minX = fminf(element->rect.x, minX)
-        maxX = fmaxf(element->rect.x + element->rect.width, maxX)
-        minY = fminf(element->rect.y, minY)
-        maxY = fmaxf(element->rect.y + element->rect.height, maxY)
+        minX = GETMIN(element->rect.x, minX)
+        maxX = GETMAX(element->rect.x + element->rect.width, maxX)
+        minY = GETMIN(element->rect.y, minY)
+        maxY = GETMAX(element->rect.y + element->rect.height, maxY)
     next
 
     dim as Vector2 max = GetWorldToScreen2D(Vector2(maxX, maxY), cam)

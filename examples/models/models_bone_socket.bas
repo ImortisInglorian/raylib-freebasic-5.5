@@ -130,15 +130,15 @@ do while not WindowShouldClose()        '' Detect window close button or ESC key
             for i as integer = 0 to BONE_SOCKETS - 1
                 if not showEquip(i) then continue for
 
-                dim as Transform ptr transform = @anim.framePoses[animCurrentFrame][boneSocketIndex(i)]
+                dim as Transform ptr trans = @anim.framePoses[animCurrentFrame][boneSocketIndex(i)]
                 dim as Quaternion inRotation = characterModel.bindPose[boneSocketIndex(i)].rotation
-                dim as Quaternion outRotation = transform->rotation
+                dim as Quaternion outRotation = trans->rotation
                 
                 '' Calculate socket rotation (angle between bone in initial pose and same bone in current animation frame)
                 dim as Quaternion rotate = QuaternionMultiply(outRotation, QuaternionInvert(inRotation))
                 dim as Matrix matrixTransform = QuaternionToMatrix(rotate)
                 '' Translate socket to its position in the current animation
-                matrixTransform = MatrixMultiply(matrixTransform, MatrixTranslate(transform->translation.x, transform->translation.y, transform->translation.z))
+                matrixTransform = MatrixMultiply(matrixTransform, MatrixTranslate(trans->translation.x, trans->translation.y, trans->translation.z))
                 '' Transform the socket using the transform of the character (angle and translate)
                 matrixTransform = MatrixMultiply(matrixTransform, characterModel.transform)
                 
