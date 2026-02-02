@@ -34,20 +34,20 @@ dim as long widt = 960
 dim as long height = 480
 
 '' Dynamic memory allocation to store pixels data (Color type)
-dim as RLColor pixels((widt * height) - 1)
+dim as RLColor ptr pixels = allocate((widt * height) * sizeof(RLColor))
 
 for y as integer = 0 to height - 1
     for x as integer = 0 to widt - 1
         if ((x / 32 + y / 32) / 1) mod 2 = 0 then
-            pixels(y * widt + x) = ORANGE
+            pixels[y * widt + x] = ORANGE
         else
-            pixels(y * widt + x) = GOLD
+            pixels[y * widt + x] = GOLD
         end if
-    next
+    next 
 next
 
 '' Load pixels data into an image structure and create texture
-dim as Image checkedIm = Image(@pixels(0), widt, height, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8, 1)
+dim as Image checkedIm = Image(pixels, widt, height, PIXELFORMAT_UNCOMPRESSED_R8G8B8A8, 1)
 
 dim as Texture2D checked = LoadTextureFromImage(checkedIm)
 UnloadImage(checkedIm)         '' Unload CPU (RAM) image data (pixels)
