@@ -49,12 +49,15 @@ dim as boolean pause = false                 '' Pause control flag
 dim as long targetFPS = 60                 '' Our initial target fps
 ''--------------------------------------------------------------------------------------
 
+
 '' Main game loop
-do while not WindowShouldClose()        '' Detect window close button or ESC key
+do  
     '' Update
     ''----------------------------------------------------------------------------------
+
     PollInputEvents()              '' Poll input events (SUPPORT_CUSTOM_FRAME_CONTROL)
-    
+    if WindowShouldClose then exit do  '' Detect window close button or ESC key
+
     if IsKeyPressed(KEY_SPACE) then pause = not pause
     
     if IsKeyPressed(KEY_UP) then 
