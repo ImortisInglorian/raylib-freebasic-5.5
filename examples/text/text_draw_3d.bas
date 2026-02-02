@@ -518,7 +518,9 @@ sub DrawText3D(fnt as Font, text as const zstring ptr, position as Vector3, font
 
     dim as single scale = fontSize/fnt.baseSize
 
-    for i as integer = 0 to length - 1
+    dim as integer i
+
+    do while i < length - 1
         '' Get next codepoint from byte string and glyph index in font
         dim as long codepointByteCount = 0
         dim as long codepoint = GetCodepoint(@text[i], @codepointByteCount)
@@ -546,7 +548,7 @@ sub DrawText3D(fnt as Font, text as const zstring ptr, position as Vector3, font
         end if
 
         i += codepointByteCount   '' Move text bytes counter to next codepoint
-    next
+    loop
 end sub
 
 '' Measure a text in 3D. For some reason `MeasureTextEx()` just doesn't seem to work so i had to use this instead.
