@@ -25,8 +25,8 @@ const as long screenHeight = 450
 
 InitWindow(screenWidth, screenHeight, "raylib [text] example - draw text inside a rectangle")
 
-dim as zstring * 256 text = !"Text cannot escape\tthis container\t...word wrap also works when active so here's" _
-                            & !"a long text for testing.\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod" _
+dim as zstring * 512 text = !"Text cannot escape\tthis container\t...word wrap also works when active so here's " _
+                            & !"a long text for testing.\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod " _
                             & !"tempor incididunt ut labore et dolore magna aliqua. Nec ullamcorper sit amet risus nullam eget felis eget."
 
 dim as boolean resizing = false
@@ -154,7 +154,7 @@ sub DrawTextBoxedSelectable(fnt as Font, text as const zstring ptr, rec as Recta
     for i as integer = 0 to length - 1
         '' Get next codepoint from byte string and glyph index in font
         dim as long codepointByteCount = 0
-        dim as long codepoint = GetCodepoint(@text[i], @codepointByteCount)
+        dim as long codepoint = GetCodepoint(text[i], @codepointByteCount)
         dim as long index = GetGlyphIndex(fnt, codepoint)
 
         '' NOTE: Normally we exit the decoding sequence as soon as a bad byte is found (and return 0x3f)
@@ -184,12 +184,12 @@ sub DrawTextBoxedSelectable(fnt as Font, text as const zstring ptr, rec as Recta
                 if i = endLine then endLine -= codepointByteCount
                 if (startLine + codepointByteCount) = endLine then endLine = (i - codepointByteCount)
 
-                state = not state
+                state = DRAW_STATE
             elseif (i + 1) = length then
                 endLine = i
-                state = not state
+                state = DRAW_STATE
             elseif codepoint = asc(!"\n") then 
-                state = not state
+                state = DRAW_STATE
             end if
 
             if state = DRAW_STATE then
@@ -209,7 +209,7 @@ sub DrawTextBoxedSelectable(fnt as Font, text as const zstring ptr, rec as Recta
                     textOffsetX = 0
                 end if
             else
-                if not wordWrap and ((textOffsetX + glyphWidth) > rec.width) then
+                if not(wordWrap) andAlso ((textOffsetX + glyphWidth) > rec.width) then
                     textOffsetY += (fnt.baseSize + fnt.baseSize/2)*scaleFactor
                     textOffsetX = 0
                 end if
@@ -239,7 +239,7 @@ sub DrawTextBoxedSelectable(fnt as Font, text as const zstring ptr, rec as Recta
                 selectStart += lastk - k
                 k = lastk
 
-                state = not state
+                state = MEASURE_STATE
             end if
         end if
 
