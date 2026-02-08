@@ -168,20 +168,20 @@ end function
 
 '' Exponential Easing functions
 function EaseExpoIn(t as single, b as single, c as single, d as single) as single '' Ease: Exponential In
-    return iif(t = 0.0f, b, c * (2.0f ^ 10.0f * (t / d - 1.0f)) + b)
+    return iif(t = 0.0f, b, c * (2.0f ^ (10.0f * (t / d - 1.0f))) + b)
 end function
 
 function EaseExpoOut(t as single, b as single, c as single, d as single) as single '' Ease: Exponential Out
-    return iif(t = d, b + c, c * (-(2.0f ^ -10.0f * t / d) + 1.0f) + b)
+    return iif(t = d, b + c, c * (-(2.0f ^ (-10.0f * t / d)) + 1.0f) + b)
 end function
 
 function EaseExpoInOut(byval t as single, b as single, c as single, d as single) as single '' Ease: Exponential In Out
     if t = 0.0f then return b
     if t = d then return b + c
     t /= d
-    if t / 2.0f < 1.0f then return c / 2.0f * (2.0f ^ 10.0f * (t - 1.0f)) + b
+    if t / 2.0f < 1.0f then return c / 2.0f * (2.0f ^ (10.0f * (t - 1.0f))) + b
 
-    return c / 2.0f * (-(2.0f ^ -10.0f * (t - 1.0f)) + 2.0f) + b
+    return c / 2.0f * (-(2.0f ^ (-10.0f * (t - 1.0f))) + 2.0f) + b
 end function
 
 '' Back Easing functions
@@ -282,11 +282,11 @@ function EaseElasticInOut(byval t as single, b as single, c as single, d as sing
 
     if t < 1.0f then
         t -= 1.0f
-        dim as single postFix = a * (2.0f ^ 10.0f * t)
+        dim as single postFix = a * (2.0f ^ (10.0f * t))
         return -0.5f * (postFix * sin((t * d - s) * (2.0f * PI) / p)) + b
     end if
     t -= 1.0f
-    dim as single postFix = a * (2.0f ^ -10.0f * t)
+    dim as single postFix = a * (2.0f ^ (-10.0f * t))
 
     return postFix * sin((t * d - s) * (2.0f * PI) / p) * 0.5f + c + b
 end function

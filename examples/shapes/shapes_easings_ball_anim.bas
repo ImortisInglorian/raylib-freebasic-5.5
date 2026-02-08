@@ -39,14 +39,14 @@ do while not WindowShouldClose()    '' Detect window close button or ESC key
     select case state
         case 0            '' Move ball position X with easing
             framesCounter += 1
-            ballPositionX = int(EaseElasticOut(framesCounter, -100, (screenWidth/2.0f) + 100, 120))
+            ballPositionX = EaseElasticOut(framesCounter, -100, (screenWidth/2.0f) + 100, 120)
             if framesCounter >= 120 then
                 framesCounter = 0
                 state = 1
             end if
         case 1        '' Increase ball radius with easing
             framesCounter += 1
-            ballRadius = int(EaseElasticIn(framesCounter, 20, 500, 200))
+            ballRadius = EaseElasticIn(framesCounter, 20, 500, 200)
 
             if framesCounter >= 200 then
                 framesCounter = 0
