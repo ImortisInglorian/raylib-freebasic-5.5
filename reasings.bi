@@ -254,7 +254,7 @@ function EaseElasticIn(byval t as single, b as single, c as single, d as single)
     dim as single a = c
     dim as single s = p / 4.0f
     t -= 1.0f
-    dim as single postFix = a * (2.0f ^ 10.0f * t)
+    dim as single postFix = a * (2.0f ^ (10.0f * t))
 
     return -(postFix * sin((t * d - s) * (2.0f * PI) / p)) + b
 end function

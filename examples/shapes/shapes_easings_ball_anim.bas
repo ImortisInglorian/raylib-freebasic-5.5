@@ -36,39 +36,39 @@ SetTargetFPS(60)               '' Set our game to run at 60 frames-per-second
 do while not WindowShouldClose()    '' Detect window close button or ESC key
     '' Update
     ''----------------------------------------------------------------------------------
-    if state = 0 then            '' Move ball position X with easing
-        framesCounter += 1
-        ballPositionX = EaseElasticOut(framesCounter, -100, screenWidth/2.0f + 100, 120)
+    select case state
+        case 0            '' Move ball position X with easing
+            framesCounter += 1
+            ballPositionX = int(EaseElasticOut(framesCounter, -100, (screenWidth/2.0f) + 100, 120))
+            if framesCounter >= 120 then
+                framesCounter = 0
+                state = 1
+            end if
+        case 1        '' Increase ball radius with easing
+            framesCounter += 1
+            ballRadius = int(EaseElasticIn(framesCounter, 20, 500, 200))
 
-        if framesCounter >= 120 then
-            framesCounter = 0
-            state = 1
-        end if
-    elseif state = 1 then        '' Increase ball radius with easing
-        framesCounter += 1
-        ballRadius = EaseElasticIn(framesCounter, 20, 500, 200)
+            if framesCounter >= 200 then
+                framesCounter = 0
+                state = 2
+            end if
+        case 2        '' Change ball alpha with easing (background color blending)
+            framesCounter += 1
+            ballAlpha = EaseCubicOut(framesCounter, 0.0f, 1.0f, 200)
 
-        if framesCounter >= 200 then
-            framesCounter = 0
-            state = 2
-        end if
-    elseif state = 2 then        '' Change ball alpha with easing (background color blending)
-        framesCounter += 1
-        ballAlpha = EaseCubicOut(framesCounter, 0.0f, 1.0f, 200)
-
-        if framesCounter >= 200 then
-            framesCounter = 0
-            state = 3
-        end if
-    elseif state = 3 then        '' Reset state to play again
-        if IsKeyPressed(KEY_ENTER) then
-            '' Reset required variables to play again
-            ballPositionX = -100
-            ballRadius = 20
-            ballAlpha = 0.0f
-            state = 0
-        end if
-    end if
+            if framesCounter >= 200 then
+                framesCounter = 0
+                state = 3
+            end if
+        case 3        '' Reset state to play again
+            if IsKeyPressed(KEY_ENTER) then
+                '' Reset required variables to play again
+                ballPositionX = -100
+                ballRadius = 20
+                ballAlpha = 0.0f
+                state = 0
+            end if
+    end select
 
     if IsKeyPressed(KEY_R) then framesCounter = 0
     ''----------------------------------------------------------------------------------
