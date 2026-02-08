@@ -232,7 +232,7 @@ do while not WindowShouldClose()    '' Detect window close button or ESC key
             dim as single emissiveIntensity = 0.01f
             SetShaderValue(shade, emissiveIntensityLoc, @emissiveIntensity, SHADER_UNIFORM_FLOAT)
             
-            DrawModel(car, Vector3(0.0f, 0.0f, 0.0f), 0.25f, WHITE)   '' Draw car model
+            'DrawModel(car, Vector3(0.0f, 0.0f, 0.0f), 0.25f, WHITE)   '' Draw car model
 
             '' Draw spheres to show the lights positions
             for i as integer = 0 to MAX_LIGHTS - 1
