@@ -18,16 +18,17 @@
 *******************************************************************************************'/
 
 #include "../../raylib.bi"
+
 #define GLSL_VERSION            330
-#define NULL 0
 #define MAX_LIGHTS  4           '' Max dynamic lights supported by shader
 
+dim as Shader NullShader
 ''----------------------------------------------------------------------------------
 '' Types and Structures Definition
 ''----------------------------------------------------------------------------------
 
 '' Light type
-dim as long LightType
+type as long LightType
 enum
     LIGHT_DIRECTIONAL = 0
     LIGHT_POINT
@@ -75,7 +76,6 @@ declare sub UpdateLight(shade as Shader, lght as Light)
 const as long screenWidth = 800
 const as long screenHeight = 450
 
-dim as Shader NullShader
 SetConfigFlags(FLAG_MSAA_4X_HINT)
 InitWindow(screenWidth, screenHeight, "raylib [shaders] example - basic pbr")
 
@@ -85,27 +85,30 @@ with cam
     .position = Vector3(2.0f, 2.0f, 6.0f)    '' Camera position
     .target = Vector3(0.0f, 0.5f, 0.0f)      '' Camera looking at point
     .up = Vector3(0.0f, 1.0f, 0.0f)          '' Camera up vector (rotation towards target)
-    .fovy = 45.0f                            '' Camera field-of-view Y
-    .projection = CAMERA_PERSPECTIVE         '' Camera projection type
+    .fovy = 45.0f                                '' Camera field-of-view Y
+    .projection = CAMERA_PERSPECTIVE             '' Camera projection type
 end with
 
 '' Load PBR shader and setup all required locations
-dim as Shader shade = LoadShader(TextFormat("resources/shaders/glsl%i/pbr.vs", GLSL_VERSION),_
+dim as Shader shade = LoadShader(TextFormat("resources/shaders/glsl%i/pbr.vs", GLSL_VERSION), _
                             TextFormat("resources/shaders/glsl%i/pbr.fs", GLSL_VERSION))
-shade.locs[SHADER_LOC_MAP_ALBEDO] = GetShaderLocation(shade, "albedoMap")
-'' WARNING: Metalness, roughness, and ambient occlusion are all packed into a MRA texture
-'' They are passed as to the SHADER_LOC_MAP_METALNESS location for convenience,
-'' shader already takes care of it accordingly
-shade.locs[SHADER_LOC_MAP_METALNESS] = GetShaderLocation(shade, "mraMap")
-shade.locs[SHADER_LOC_MAP_NORMAL] = GetShaderLocation(shade, "normalMap")
-'' WARNING: Similar to the MRA map, the emissive map packs different information 
-'' into a single texture: it stores height and emission data
-'' It is binded to SHADER_LOC_MAP_EMISSION location an properly processed on shader
-shade.locs[SHADER_LOC_MAP_EMISSION] = GetShaderLocation(shade, "emissiveMap")
-shade.locs[SHADER_LOC_COLOR_DIFFUSE] = GetShaderLocation(shade, "albedoColor")
+with shade
+    .locs[SHADER_LOC_MAP_ALBEDO] = GetShaderLocation(shade, "albedoMap")
+    '' WARNING: Metalness, roughness, and ambient occlusion are all packed into a MRA texture
+    '' They are passed as to the SHADER_LOC_MAP_METALNESS location for convenience,
+    '' shader already takes care of it accordingly
+    .locs[SHADER_LOC_MAP_METALNESS] = GetShaderLocation(shade, "mraMap")
+    .locs[SHADER_LOC_MAP_NORMAL] = GetShaderLocation(shade, "normalMap")
+    '' WARNING: Similar to the MRA map, the emissive map packs different information 
+    '' into a single texture: it stores height and emission data
+    '' It is binded to SHADER_LOC_MAP_EMISSION location an properly processed on shader
+    .locs[SHADER_LOC_MAP_EMISSION] = GetShaderLocation(shade, "emissiveMap")
+    .locs[SHADER_LOC_COLOR_DIFFUSE] = GetShaderLocation(shade, "albedoColor")
 
-'' Setup additional required shader locations, including lights data
-shade.locs[SHADER_LOC_VECTOR_VIEW] = GetShaderLocation(shade, "viewPos")
+    '' Setup additional required shader locations, including lights data
+    .locs[SHADER_LOC_VECTOR_VIEW] = GetShaderLocation(shade, "viewPos")
+end with
+
 dim as long lightCountLoc = GetShaderLocation(shade, "numOfLights")
 dim as long maxLightCount = MAX_LIGHTS
 SetShaderValue(shade, lightCountLoc, @maxLightCount, SHADER_UNIFORM_INT)
@@ -113,7 +116,7 @@ SetShaderValue(shade, lightCountLoc, @maxLightCount, SHADER_UNIFORM_INT)
 '' Setup ambient color and intensity parameters
 dim as single ambientIntensity = 0.02f
 dim as RLColor ambientColor = RLColor(26, 32, 135, 255)
-dim as Vector3 ambientColorNormalized = Vector3(ambientColor.r / 255.0f, ambientColor.g / 255.0f, ambientColor.b / 255.0)
+dim as Vector3 ambientColorNormalized = Vector3(ambientColor.r/255.0f, ambientColor.g/255.0f, ambientColor.b/255.0f)
 SetShaderValue(shade, GetShaderLocation(shade, "ambientColor"), @ambientColorNormalized, SHADER_UNIFORM_VEC3)
 SetShaderValue(shade, GetShaderLocation(shade, "ambient"), @ambientIntensity, SHADER_UNIFORM_FLOAT)
 
@@ -129,41 +132,45 @@ dim as long textureTilingLoc = GetShaderLocation(shade, "tiling")
 '' multiple materials defined for those meshes... but always 1 mesh = 1 material
 dim as Model car = LoadModel("resources/models/old_car_new.glb")
 
-'' Assign already setup PBR shade to model.materials[0], used by models.meshes[0]
-car.materials[0].shader = shade
+with car
+    '' Assign already setup PBR shader to model.materials[0], used by models.meshes[0]
+    .materials[0].shader = shade
 
-'' Setup materials[0].maps default parameters
-car.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE
-car.materials[0].maps[MATERIAL_MAP_METALNESS].value = 0.0f
-car.materials[0].maps[MATERIAL_MAP_ROUGHNESS].value = 0.0f
-car.materials[0].maps[MATERIAL_MAP_OCCLUSION].value = 1.0f
-car.materials[0].maps[MATERIAL_MAP_EMISSION].color = RLColor(255, 162, 0, 255)
+    '' Setup materials[0].maps default parameters
+    .materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE
+    .materials[0].maps[MATERIAL_MAP_METALNESS].value = 0.0f
+    .materials[0].maps[MATERIAL_MAP_ROUGHNESS].value = 0.0f
+    .materials[0].maps[MATERIAL_MAP_OCCLUSION].value = 1.0f
+    .materials[0].maps[MATERIAL_MAP_EMISSION].color = RLColor(255, 162, 0, 255)
 
-'' Setup materials[0].maps default textures
-car.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = LoadTexture("resources/old_car_d.png")
-car.materials[0].maps[MATERIAL_MAP_METALNESS].texture = LoadTexture("resources/old_car_mra.png")
-car.materials[0].maps[MATERIAL_MAP_NORMAL].texture = LoadTexture("resources/old_car_n.png")
-car.materials[0].maps[MATERIAL_MAP_EMISSION].texture = LoadTexture("resources/old_car_e.png")
+    '' Setup materials[0].maps default textures
+    .materials[0].maps[MATERIAL_MAP_ALBEDO].texture = LoadTexture("resources/old_car_d.png")
+    .materials[0].maps[MATERIAL_MAP_METALNESS].texture = LoadTexture("resources/old_car_mra.png")
+    .materials[0].maps[MATERIAL_MAP_NORMAL].texture = LoadTexture("resources/old_car_n.png")
+    .materials[0].maps[MATERIAL_MAP_EMISSION].texture = LoadTexture("resources/old_car_e.png")
+end with
 
 '' Load floor model mesh and assign material parameters
 '' NOTE: A basic plane shape can be generated instead of being loaded from a model file
-dim as Model floorMod = LoadModel("resources/models/plane.glb")
-''Mesh floorMesh = GenMeshPlane(10, 10, 10, 10)
-''GenMeshTangents(&floorMesh)      '' TODO: Review tangents generation
-''Model floor = LoadModelFromMesh(floorMesh)
+dim as Model floor = LoadModel("resources/models/plane.glb")
+''Mesh floorMesh = GenMeshPlane(10, 10, 10, 10);
+''GenMeshTangents(&floorMesh);      '' TODO: Review tangents generation
+''Model floor = LoadModelFromMesh(floorMesh);
 
-'' Assign material shader for our floor model, same PBR shader 
-floorMod.materials[0].shader = shade
+'' Assign material shader for our floor model, same PBR shader
+with floor
+    .materials[0].shader = shade
 
-floorMod.materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE
-floorMod.materials[0].maps[MATERIAL_MAP_METALNESS].value = 0.0f
-floorMod.materials[0].maps[MATERIAL_MAP_ROUGHNESS].value = 0.0f
-floorMod.materials[0].maps[MATERIAL_MAP_OCCLUSION].value = 1.0f
-floorMod.materials[0].maps[MATERIAL_MAP_EMISSION].color = BLACK
+    .materials[0].maps[MATERIAL_MAP_ALBEDO].color = WHITE
+    .materials[0].maps[MATERIAL_MAP_METALNESS].value = 0.0f
+    .materials[0].maps[MATERIAL_MAP_ROUGHNESS].value = 0.0f
+    .materials[0].maps[MATERIAL_MAP_OCCLUSION].value = 1.0f
+    .materials[0].maps[MATERIAL_MAP_EMISSION].color = BLACK
 
-floorMod.materials[0].maps[MATERIAL_MAP_ALBEDO].texture = LoadTexture("resources/road_a.png")
-floorMod.materials[0].maps[MATERIAL_MAP_METALNESS].texture = LoadTexture("resources/road_mra.png")
-floorMod.materials[0].maps[MATERIAL_MAP_NORMAL].texture = LoadTexture("resources/road_n.png")
+    .materials[0].maps[MATERIAL_MAP_ALBEDO].texture = LoadTexture("resources/road_a.png")
+    .materials[0].maps[MATERIAL_MAP_METALNESS].texture = LoadTexture("resources/road_mra.png")
+    .materials[0].maps[MATERIAL_MAP_NORMAL].texture = LoadTexture("resources/road_n.png")
+end with
 
 '' Models texture tiling parameter can be stored in the Material struct if required (CURRENTLY NOT USED)
 '' NOTE: Material.params[4] are available for generic parameters storage (float)
@@ -220,10 +227,10 @@ do while not WindowShouldClose()    '' Detect window close button or ESC key
             
             '' Set floor model texture tiling and emissive color parameters on shader
             SetShaderValue(shade, textureTilingLoc, @floorTextureTiling, SHADER_UNIFORM_VEC2)
-            dim as Vector4 floorEmissiveColor = ColorNormalize(floorMod.materials[0].maps[MATERIAL_MAP_EMISSION].color)
+            dim as Vector4 floorEmissiveColor = ColorNormalize(floor.materials[0].maps[MATERIAL_MAP_EMISSION].color)
             SetShaderValue(shade, emissiveColorLoc, @floorEmissiveColor, SHADER_UNIFORM_VEC4)
             
-            DrawModel(floorMod, Vector3(0.0f, 0.0f, 0.0f), 5.0f, WHITE)   '' Draw floor model
+            DrawModel(floor, Vector3(0.0f, 0.0f, 0.0f), 5.0f, WHITE)   '' Draw floor model
 
             '' Set old car model texture tiling, emissive color and emissive intensity parameters on shader
             SetShaderValue(shade, textureTilingLoc, @carTextureTiling, SHADER_UNIFORM_VEC2)
@@ -232,15 +239,15 @@ do while not WindowShouldClose()    '' Detect window close button or ESC key
             dim as single emissiveIntensity = 0.01f
             SetShaderValue(shade, emissiveIntensityLoc, @emissiveIntensity, SHADER_UNIFORM_FLOAT)
             
-            'DrawModel(car, Vector3(0.0f, 0.0f, 0.0f), 0.25f, WHITE)   '' Draw car model
+            DrawModel(car, Vector3(0.0f, 0.0f, 0.0f), 0.25f, WHITE)   '' Draw car model
 
             '' Draw spheres to show the lights positions
             for i as integer = 0 to MAX_LIGHTS - 1
-                dim as RLColor lightColor = RLColor(lights(i).color(0) * 255, lights(i).color(1) * 255, lights(i).color(2) * 255, lights(i).color(3) * 255)
+                dim as RLColor lightColor = RLColor(lights(i).color(0)*255, lights(i).color(1)*255, lights(i).color(2)*255, lights(i).color(3)*255)
                 
                 if lights(i).enabled = 1 then
                     DrawSphereEx(lights(i).position, 0.2f, 8, 8, lightColor)
-                else 
+                else
                     DrawSphereWires(lights(i).position, 0.2f, 8, 8, ColorAlpha(lightColor, 0.3f))
                 end if
             next
@@ -263,13 +270,13 @@ loop
 '' to avoid UnloadMaterial() trying to unload it automatically
 car.materials[0].shader = NullShader
 UnloadMaterial(car.materials[0])
-car.materials[0].maps = NULL
+car.materials[0].maps = 0
 UnloadModel(car)
 
-floorMod.materials[0].shader = NullShader
-UnloadMaterial(floorMod.materials[0])
-floorMod.materials[0].maps = NULL
-UnloadModel(floorMod)
+floor.materials[0].shader = NullShader
+UnloadMaterial(floor.materials[0])
+floor.materials[0].maps = 0
+UnloadModel(floor)
 
 UnloadShader(shade)       '' Unload Shader
 
@@ -282,30 +289,31 @@ function CreateLight(typ as long, position as Vector3, target as Vector3, clr as
     dim as Light lght
 
     if lightCount < MAX_LIGHTS then
-        lght.enabled = 1
-        lght.type = typ
-        lght.position = position
-        lght.target = target
-        lght.color(0) = clr.r/255.0f
-        lght.color(1) = clr.g/255.0f
-        lght.color(2) = clr.b/255.0f
-        lght.color(3) = clr.a/255.0f
-        lght.intensity = intensity
+        with lght
+            .enabled = 1
+            .type = typ
+            .position = position
+            .target = target
+            .color(0) = clr.r/255.0f
+            .color(1) = clr.g/255.0f
+            .color(2) = clr.b/255.0f
+            .color(3) = clr.a/255.0f
+            .intensity = intensity
         
-        '' NOTE: Shader parameters names for lights must match the requested ones
-        lght.enabledLoc = GetShaderLocation(shade, TextFormat("lights[%i].enabled", lightCount))
-        lght.typeLoc = GetShaderLocation(shade, TextFormat("lights[%i].type", lightCount))
-        lght.positionLoc = GetShaderLocation(shade, TextFormat("lights[%i].position", lightCount))
-        lght.targetLoc = GetShaderLocation(shade, TextFormat("lights[%i].target", lightCount))
-        lght.colorLoc = GetShaderLocation(shade, TextFormat("lights[%i].color", lightCount))
-        lght.intensityLoc = GetShaderLocation(shade, TextFormat("lights[%i].intensity", lightCount))
-        
+            '' NOTE: Shader parameters names for lights must match the requested ones
+            .enabledLoc = GetShaderLocation(shade, TextFormat("lights[%i].enabled", lightCount))
+            .typeLoc = GetShaderLocation(shade, TextFormat("lights[%i].type", lightCount))
+            .positionLoc = GetShaderLocation(shade, TextFormat("lights[%i].position", lightCount))
+            .targetLoc = GetShaderLocation(shade, TextFormat("lights[%i].target", lightCount))
+            .colorLoc = GetShaderLocation(shade, TextFormat("lights[%i].color", lightCount))
+            .intensityLoc = GetShaderLocation(shade, TextFormat("lights[%i].intensity", lightCount))
+        end with
         UpdateLight(shade, lght)
 
         lightCount += 1
     end if
 
-    return light
+    return lght
 end function
 
 '' Send light properties to shader
@@ -314,11 +322,11 @@ sub UpdateLight(shade as Shader, lght as Light)
     SetShaderValue(shade, lght.enabledLoc, @lght.enabled, SHADER_UNIFORM_INT)
     SetShaderValue(shade, lght.typeLoc, @lght.type, SHADER_UNIFORM_INT)
     
-    '' Send to shader light position values
+    '' Send to shader lght position values
     dim as single position(...) = { lght.position.x, lght.position.y, lght.position.z }
     SetShaderValue(shade, lght.positionLoc, @position(0), SHADER_UNIFORM_VEC3)
 
-    '' Send to shader light target position values
+    '' Send to shader lght target position values
     dim as single target(...) = { lght.target.x, lght.target.y, lght.target.z }
     SetShaderValue(shade, lght.targetLoc, @target(0), SHADER_UNIFORM_VEC3)
     SetShaderValue(shade, lght.colorLoc, @lght.color(0), SHADER_UNIFORM_VEC4)
