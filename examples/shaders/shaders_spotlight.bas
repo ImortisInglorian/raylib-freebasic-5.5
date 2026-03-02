@@ -89,13 +89,9 @@ dim as Shader shdrSpot = LoadShader(0, TextFormat("resources/shaders/glsl%i/spot
 dim as Spot spots(MAX_SPOTS - 1)
 
 for i as integer = 0 to MAX_SPOTS - 1
-    dim as zstring * 32 posName = !"spots[x].pos\0"
-    dim as zstring * 32 innerName = !"spots[x].inner\0"
-    dim as zstring * 32 radiusName = !"spots[x].radius\0"
-
-    posName[6] = i
-    innerName[6] = i
-    radiusName[6] = i
+    dim as zstring * 32 posName = "spots[" & i & "].pos"
+    dim as zstring * 32 innerName = "spots[" & i & "].inner"
+    dim as zstring * 32 radiusName = "spots[" & i & "].radius"
 
     spots(i).positionLoc = GetShaderLocation(shdrSpot, posName)
     spots(i).innerLoc = GetShaderLocation(shdrSpot, innerName)
